@@ -10,9 +10,11 @@ link_directories(/usr/local/lib/)
 #set(my_SOURCES ${PROJECT_SOURCE_DIR}/libao_ffmpeg.c
 #)
 
-add_executable(Decode_Audio2 demuxing_decoding_filtering.c)
-#add_executable(Sample ao_example.c)
+add_compile_options(-D__STDC_CONSTANT_MACROS)
 
+add_executable(Decode_Audio2 
+               ring_buffer 
+               demuxing_decoding_filtering.cpp)
 
 
 target_link_libraries(Decode_Audio2
