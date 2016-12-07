@@ -13,7 +13,7 @@ link_directories(/usr/local/lib/)
 add_compile_options(-D__STDC_CONSTANT_MACROS)
 
 add_executable(Decode_Audio2 
-               ring_buffer 
+	       ring_buffer.cpp
                demuxing_decoding_filtering.cpp)
 
 
