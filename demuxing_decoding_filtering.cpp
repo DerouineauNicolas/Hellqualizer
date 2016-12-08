@@ -1,34 +1,3 @@
-/*
- * Copyright (c) 2012 Stefano Sabatini
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
- * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- */
-
-/**
- * @file
- * Demuxing and decoding example.
- *
- * Show how to use the libavformat and libavcodec API to demux and
- * decode audio and video data.
- * @example demuxing_decoding.c
- */
-
 extern "C" {
 #include <libavutil/imgutils.h>
 #include <libavcodec/avcodec.h>
@@ -128,7 +97,6 @@ static int decode_packet(int *got_frame, int cached)
         uint16_t *out = (uint16_t *)samples;
 
         if (*got_frame) {
-            //int write_p=0;
             if(audio_dec_ctx->sample_fmt==AV_SAMPLE_FMT_FLTP){
                 for (int j=0; j<audio_dec_ctx->channels; j++) {
                     float* inputChannel = (float*)frame->extended_data[j];
@@ -138,13 +106,8 @@ static int decode_packet(int *got_frame, int cached)
                         else if (sample>1.0f) sample=1.0f;
 
                         out[i*audio_dec_ctx->channels + j] = (int16_t) (sample * 32767.0f );
-                        //write_p++;
                     }
                 }
-                //myqueue.push(samples);
-                //size_t unpadded_linesize = frame->nb_samples * av_get_bytes_per_sample(frame->format);
-                //printf("plane_size = %d \n",plane_size);
-                //ao_play(device, (char*)samples, ( plane_size/sizeof(float) )* sizeof(uint16_t) * audio_dec_ctx->channels );
                 toto->Write(samples, ( plane_size/sizeof(float) )* sizeof(uint16_t) * audio_dec_ctx->channels);
             }
         }
@@ -213,35 +176,6 @@ static int open_codec_context(int *stream_idx,
     return 0;
 }
 
-static int get_format_from_sample_fmt(const char **fmt,
-                                      enum AVSampleFormat sample_fmt)
-{
-    int i;
-    struct sample_fmt_entry {
-        enum AVSampleFormat sample_fmt; const char *fmt_be, *fmt_le;
-    } sample_fmt_entries[] = {
-        { AV_SAMPLE_FMT_U8,  "u8",    "u8"    },
-        { AV_SAMPLE_FMT_S16, "s16be", "s16le" },
-        { AV_SAMPLE_FMT_S32, "s32be", "s32le" },
-        { AV_SAMPLE_FMT_FLT, "f32be", "f32le" },
-        { AV_SAMPLE_FMT_DBL, "f64be", "f64le" },
-    };
-    *fmt = NULL;
-
-    for (i = 0; i < FF_ARRAY_ELEMS(sample_fmt_entries); i++) {
-        struct sample_fmt_entry *entry = &sample_fmt_entries[i];
-        if (sample_fmt == entry->sample_fmt) {
-            *fmt = AV_NE(entry->fmt_be, entry->fmt_le);
-            return 0;
-        }
-    }
-
-    fprintf(stderr,
-            "sample format %s is not supported as output format\n",
-            av_get_sample_fmt_name(sample_fmt));
-    return -1;
-}
-
 int main (int argc, char **argv)
 {
     int ret = 0, got_frame;
@@ -250,13 +184,7 @@ int main (int argc, char **argv)
         fprintf(stderr, "Tu fais de la merde ma gueule \n");
         exit(1);
     }
-    if (argc == 5 && !strcmp(argv[1], "-refcount")) {
-        refcount = 1;
-        argv++;
-    }
     src_filename = argv[1];
-    video_dst_filename = "caca";
-    audio_dst_filename = "Toto";
 
     /* register all formats and codecs */
     av_register_all();
@@ -273,45 +201,16 @@ int main (int argc, char **argv)
         exit(1);
     }
 
-    if (open_codec_context(&video_stream_idx, &video_dec_ctx, fmt_ctx, AVMEDIA_TYPE_VIDEO) >= 0) {
-        video_stream = fmt_ctx->streams[video_stream_idx];
-
-        video_dst_file = fopen(video_dst_filename, "wb");
-        if (!video_dst_file) {
-            fprintf(stderr, "Could not open destination file %s\n", video_dst_filename);
-            ret = 1;
-            goto end;
-        }
-
-        /* allocate image where the decoded image will be put */
-        width = video_dec_ctx->width;
-        height = video_dec_ctx->height;
-        pix_fmt = video_dec_ctx->pix_fmt;
-        ret = av_image_alloc(video_dst_data, video_dst_linesize,
-                             width, height, pix_fmt, 1);
-        if (ret < 0) {
-            fprintf(stderr, "Could not allocate raw video buffer\n");
-            goto end;
-        }
-        video_dst_bufsize = ret;
-    }
-
 
     if (open_codec_context(&audio_stream_idx, &audio_dec_ctx, fmt_ctx, AVMEDIA_TYPE_AUDIO) >= 0) {
         audio_stream = fmt_ctx->streams[audio_stream_idx];
-        audio_dst_file = fopen(audio_dst_filename, "wb");
-        if (!audio_dst_file) {
-            fprintf(stderr, "Could not open destination file %s\n", audio_dst_filename);
-            ret = 1;
-            goto end;
-        }
     }
 
     /* dump input information to stderr */
     av_dump_format(fmt_ctx, 0, src_filename, 0);
 
-    if (!audio_stream && !video_stream) {
-        fprintf(stderr, "Could not find audio or video stream in the input, aborting\n");
+    if (!audio_stream) {
+        fprintf(stderr, "Could not find audio  stream in the input, aborting\n");
         ret = 1;
         goto end;
     }
@@ -327,11 +226,6 @@ int main (int argc, char **argv)
     av_init_packet(&pkt);
     pkt.data = NULL;
     pkt.size = 0;
-
-    if (video_stream)
-        printf("Demuxing video from file '%s' into '%s'\n", src_filename, video_dst_filename);
-    if (audio_stream)
-        printf("Demuxing audio from file '%s' into '%s'\n", src_filename, audio_dst_filename);
 
    //LIBAO INIT
     ao_initialize();
@@ -397,44 +291,10 @@ int main (int argc, char **argv)
 
     ao_shutdown();
 
-    if (video_stream) {
-        printf("Play the output video file with the command:\n"
-               "ffplay -f rawvideo -pix_fmt %s -video_size %dx%d %s\n",
-               av_get_pix_fmt_name(pix_fmt), width, height,
-               video_dst_filename);
-    }
-
-    if (audio_stream) {
-        enum AVSampleFormat sfmt = audio_dec_ctx->sample_fmt;
-        int n_channels = audio_dec_ctx->channels;
-        const char *fmt;
-
-        if (av_sample_fmt_is_planar(sfmt)) {
-            const char *packed = av_get_sample_fmt_name(sfmt);
-            printf("Warning: the sample format the decoder produced is planar "
-                   "(%s). This example will output the first channel only.\n",
-                   packed ? packed : "?");
-            sfmt = av_get_packed_sample_fmt(sfmt);
-            n_channels = 1;
-        }
-
-        if ((ret = get_format_from_sample_fmt(&fmt, sfmt)) < 0)
-            goto end;
-
-        printf("Play the output audio file with the command:\n"
-               "ffplay -f %s -ac %d -ar %d %s\n",
-               fmt, n_channels, audio_dec_ctx->sample_rate,
-               audio_dst_filename);
-    }
-
 end:
     avcodec_free_context(&video_dec_ctx);
     avcodec_free_context(&audio_dec_ctx);
     avformat_close_input(&fmt_ctx);
-    if (video_dst_file)
-        fclose(video_dst_file);
-    if (audio_dst_file)
-        fclose(audio_dst_file);
     av_frame_free(&frame);
     av_free(video_dst_data[0]);
 
