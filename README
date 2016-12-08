@@ -1,0 +1,19 @@
+#Intro
+
+This program is decoding, filtering and playing encoded audio streams
+
+#Compilation
+
+To compile it, you need cmake , ffmpeg-dev (>=V3.0.0) and libao-dev installed in /usr/local/
+
+1, clone the project in $PROJECT_DIR
+2, Create shallow build directory (ie: mkdir $PROJECT_DIR/build)
+3, cd $PROJECT_DIR/build
+4, cmake ..
+5, make
+
+#Execution 
+
+./Decode_Audio2 ~/musique/some_music.mp4
+
+Please note that only aac streams have been tested so far.
