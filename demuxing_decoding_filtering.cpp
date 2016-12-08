@@ -43,6 +43,7 @@ extern "C" {
 #include <limits.h>
 #include <stdint.h>
 #include <ring_buffer.h>
+#include <limits>
 
 static AVFormatContext *fmt_ctx = NULL;
 static AVCodecContext *video_dec_ctx = NULL, *audio_dec_ctx;
@@ -90,7 +91,7 @@ const int buffer_size=AVCODEC_MAX_AUDIO_FRAME_SIZE+ FF_INPUT_BUFFER_PADDING_SIZE
 //#include <queue>
 //std::queue <uint8_t*> myqueue;
 
-RingBuffer* toto= new RingBuffer(5000000);
+RingBuffer* toto= new RingBuffer(441000*2);
 
 
 #define AVCODEC_MAX_AUDIO_FRAME_SIZE 192000
@@ -123,18 +124,21 @@ static int decode_packet(int *got_frame, int cached)
          * Also, some decoders might over-read the packet. */
         decoded = FFMIN(ret, pkt.size);
 
-        uint8_t samples[buffer_size];
+        uint8_t *samples= new uint8_t[buffer_size];
         uint16_t *out = (uint16_t *)samples;
 
         if (*got_frame) {
-            int write_p=0;
+            //int write_p=0;
             if(audio_dec_ctx->sample_fmt==AV_SAMPLE_FMT_FLTP){
-                int nb=0;
-                for (;nb<plane_size/sizeof(float);nb++){
-                    int ch = 0;
-                    for (; ch < audio_dec_ctx->channels; ch++) {
-                        out[write_p]  = ((float *) frame->extended_data[ch])[nb] * 32767.0f ;
-                        write_p++;
+                for (int j=0; j<audio_dec_ctx->channels; j++) {
+                    float* inputChannel = (float*)frame->extended_data[j];
+                    for (int i=0 ; i<frame->nb_samples ; i++) {
+                        float sample = inputChannel[i];
+                        if (sample<-1.0f) sample=-1.0f;
+                        else if (sample>1.0f) sample=1.0f;
+
+                        out[i*audio_dec_ctx->channels + j] = (int16_t) (sample * 32767.0f );
+                        //write_p++;
                     }
                 }
                 //myqueue.push(samples);
@@ -383,23 +387,10 @@ int main (int argc, char **argv)
 
     uint8_t samples[buffer_size];
 
-    while(toto->Read(samples,4096*2*2*2)){
+    while(toto->Read(samples,( plane_size/sizeof(float) )* sizeof(uint16_t) * audio_dec_ctx->channels)){
         printf("#");
-        ao_play(device,(char*)samples, 4096*2*2*2);
+        ao_play(device,(char*)samples, ( plane_size/sizeof(float) )* sizeof(uint16_t) * audio_dec_ctx->channels);
     }
-
-//    printf("Now playing \n");
-//    printf("size= %d \n",myqueue.size());
-//    while (!myqueue.empty())
-//    {
-//      printf("#");
-//      char *samples;
-//      samples=(char*)myqueue.front();
-//      printf("Push !");
-
-//      myqueue.pop();
-//
-//    }
 
     /* -- Close and shutdown -- */
     ao_close(device);
