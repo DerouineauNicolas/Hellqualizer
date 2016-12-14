@@ -25,13 +25,9 @@ target_link_libraries(Decode_Audio2
 		      swscale
 		      ao
 		      m
+		      pthread
 )
 
-
-if (BZIP2_FOUND)
-  include_directories(${BZIP_INCLUDE_DIRS})
-  target_link_libraries (Decode_Video ${BZIP2_LIBRARIES})
-endif (BZIP2_FOUND)
    
 
 

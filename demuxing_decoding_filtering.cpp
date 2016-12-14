@@ -13,6 +13,7 @@ extern "C" {
 #include <stdint.h>
 #include <ring_buffer.h>
 #include <limits>
+#include <pthread.h>
 
 static AVFormatContext *fmt_ctx = NULL;
 static AVCodecContext *video_dec_ctx = NULL, *audio_dec_ctx;
@@ -129,6 +130,47 @@ endofdecoding:
     //return decoded;
 }
 
+void *decode_thread(void *x_void_ptr)
+{
+    int num_bytes=0,got_frame;
+    while (1) {
+        if(av_read_frame(fmt_ctx, &pkt) >= 0){
+        AVPacket orig_pkt = pkt;
+        do {
+            decode_packet(&got_frame, &num_bytes,0);
+            if (num_bytes < 0)
+                break;
+            pkt.data += num_bytes;
+            pkt.size -= num_bytes;
+        } while (pkt.size > 0);
+        av_packet_unref(&orig_pkt);}
+        else
+        {
+            break;
+        }
+    }
+
+/* the function must return something - NULL will do */
+return NULL;
+
+}
+
+void *play_thread(void *x_void_ptr)
+{
+    //static init_status;
+
+    uint8_t samples[buffer_size];
+
+    while(toto->Read(samples,1024)){
+        printf("#");
+        ao_play(device,(char*)samples, 1024);
+    }
+
+/* the function must return something - NULL will do */
+   return NULL;
+
+}
+
 static int open_codec_context(int *stream_idx,
                               AVCodecContext **dec_ctx, AVFormatContext *fmt_ctx, enum AVMediaType type)
 {
@@ -186,8 +228,8 @@ static int open_codec_context(int *stream_idx,
 
 int main (int argc, char **argv)
 {
-    int ret = 0, got_frame;
-    int num_bytes=0;
+    int ret = 0; //got_frame;
+
 
     if (argc != 2) {
         fprintf(stderr, "Tu fais de la merde ma gueule \n");
@@ -265,37 +307,28 @@ int main (int argc, char **argv)
 
     /* read frames from the file */
 
-    while (av_read_frame(fmt_ctx, &pkt) >= 0) {
-        AVPacket orig_pkt = pkt;
-        do {
-            decode_packet(&got_frame, &num_bytes,0);
-            if (num_bytes < 0)
-                break;
-            pkt.data += num_bytes;
-            pkt.size -= num_bytes;
-        } while (pkt.size > 0);
-        av_packet_unref(&orig_pkt);
+    pthread_t decoding_thread;
+    pthread_t soundcard_thread;
+
+    if(pthread_create(&decoding_thread, NULL, decode_thread, NULL)) {
+
+        fprintf(stderr, "Error creating thread\n");
+        return 1;
+
     }
 
-//    /* flush cached frames */
-//    pkt.data = NULL;
-//    pkt.size = 0;
-//    do {
-//        decode_packet(&got_frame, 1);
-//    } while (got_frame);
 
 
+    pthread_join(decoding_thread, NULL);
 
-    printf("Demuxing succeeded.\n");
-    printf("toto.size = %d \n",toto->GetReadAvail());
+    if(pthread_create(&soundcard_thread, NULL, play_thread, NULL)) {
 
-    uint8_t samples[buffer_size];
-    //uint8_t caca= (( plane_size/sizeof(float) )* sizeof(uint16_t) * audio_dec_ctx->channels);
+        fprintf(stderr, "Error creating thread\n");
+        return 1;
 
-    while(toto->Read(samples,1024)){
-        printf("#");
-        ao_play(device,(char*)samples, 1024);
     }
+    pthread_join(soundcard_thread, NULL);
+
 
     /* -- Close and shutdown -- */
     ao_close(device);
