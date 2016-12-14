@@ -66,7 +66,8 @@ RingBuffer* toto= new RingBuffer(441000*2);
 #define AVCODEC_MAX_AUDIO_FRAME_SIZE 192000
 
 
-static int decode_packet(int *got_frame, int cached)
+
+void decode_packet(int *got_frame, int *bytes_read,int cached)
 {
     int ret = 0;
     int decoded = pkt.size;
@@ -79,7 +80,9 @@ static int decode_packet(int *got_frame, int cached)
         ret = avcodec_decode_audio4(audio_dec_ctx, frame, got_frame, &pkt);
         if (ret < 0) {
            /*fprintf(stderr, "Error decoding audio frame (%s)\n", av_err2str(ret));*/
-            return ret;
+            //return ret;
+            *bytes_read=-1;
+            goto endofdecoding;
         }
 
         data_size = av_samples_get_buffer_size(&plane_size, audio_dec_ctx->channels,
@@ -118,7 +121,12 @@ static int decode_packet(int *got_frame, int cached)
     if (*got_frame && refcount)
         av_frame_unref(frame);
 
-    return decoded;
+    if(!(ret<0))
+        *bytes_read=ret;
+endofdecoding:
+;
+
+    //return decoded;
 }
 
 static int open_codec_context(int *stream_idx,
@@ -179,6 +187,7 @@ static int open_codec_context(int *stream_idx,
 int main (int argc, char **argv)
 {
     int ret = 0, got_frame;
+    int num_bytes=0;
 
     if (argc != 2) {
         fprintf(stderr, "Tu fais de la merde ma gueule \n");
@@ -255,24 +264,25 @@ int main (int argc, char **argv)
     }
 
     /* read frames from the file */
+
     while (av_read_frame(fmt_ctx, &pkt) >= 0) {
         AVPacket orig_pkt = pkt;
         do {
-            ret = decode_packet(&got_frame, 0);
-            if (ret < 0)
+            decode_packet(&got_frame, &num_bytes,0);
+            if (num_bytes < 0)
                 break;
-            pkt.data += ret;
-            pkt.size -= ret;
+            pkt.data += num_bytes;
+            pkt.size -= num_bytes;
         } while (pkt.size > 0);
         av_packet_unref(&orig_pkt);
     }
 
-    /* flush cached frames */
-    pkt.data = NULL;
-    pkt.size = 0;
-    do {
-        decode_packet(&got_frame, 1);
-    } while (got_frame);
+//    /* flush cached frames */
+//    pkt.data = NULL;
+//    pkt.size = 0;
+//    do {
+//        decode_packet(&got_frame, 1);
+//    } while (got_frame);
 
 
 
@@ -280,10 +290,11 @@ int main (int argc, char **argv)
     printf("toto.size = %d \n",toto->GetReadAvail());
 
     uint8_t samples[buffer_size];
+    //uint8_t caca= (( plane_size/sizeof(float) )* sizeof(uint16_t) * audio_dec_ctx->channels);
 
-    while(toto->Read(samples,( plane_size/sizeof(float) )* sizeof(uint16_t) * audio_dec_ctx->channels)){
+    while(toto->Read(samples,1024)){
         printf("#");
-        ao_play(device,(char*)samples, ( plane_size/sizeof(float) )* sizeof(uint16_t) * audio_dec_ctx->channels);
+        ao_play(device,(char*)samples, 1024);
     }
 
     /* -- Close and shutdown -- */
