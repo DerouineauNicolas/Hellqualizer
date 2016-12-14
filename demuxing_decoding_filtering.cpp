@@ -14,6 +14,7 @@ extern "C" {
 #include <ring_buffer.h>
 #include <limits>
 #include <pthread.h>
+#include <time.h>
 
 static AVFormatContext *fmt_ctx = NULL;
 static AVCodecContext *video_dec_ctx = NULL, *audio_dec_ctx;
@@ -66,6 +67,8 @@ RingBuffer* toto= new RingBuffer(441000*2);
 
 #define AVCODEC_MAX_AUDIO_FRAME_SIZE 192000
 
+pthread_mutex_t lock;
+
 
 
 void decode_packet(int *got_frame, int *bytes_read,int cached)
@@ -112,7 +115,9 @@ void decode_packet(int *got_frame, int *bytes_read,int cached)
                         out[i*audio_dec_ctx->channels + j] = (int16_t) (sample * 32767.0f );
                     }
                 }
+                pthread_mutex_lock(&lock);
                 toto->Write(samples, ( plane_size/sizeof(float) )* sizeof(uint16_t) * audio_dec_ctx->channels);
+                pthread_mutex_unlock(&lock);
             }
         }
     }
@@ -133,20 +138,27 @@ endofdecoding:
 void *decode_thread(void *x_void_ptr)
 {
     int num_bytes=0,got_frame;
+    int got_space;
     while (1) {
-        if(av_read_frame(fmt_ctx, &pkt) >= 0){
-        AVPacket orig_pkt = pkt;
-        do {
-            decode_packet(&got_frame, &num_bytes,0);
-            if (num_bytes < 0)
+        pthread_mutex_lock(&lock);
+        got_space=toto->GetWriteAvail();
+        pthread_mutex_unlock(&lock);
+        //printf("got_space= %d",got_space );
+        if(got_space>5000){
+            if(av_read_frame(fmt_ctx, &pkt) >= 0){
+                AVPacket orig_pkt = pkt;
+                do {
+                    decode_packet(&got_frame, &num_bytes,0);
+                    if (num_bytes < 0)
+                        break;
+                    pkt.data += num_bytes;
+                    pkt.size -= num_bytes;
+                } while (pkt.size > 0);
+                av_packet_unref(&orig_pkt);}
+            else
+            {
                 break;
-            pkt.data += num_bytes;
-            pkt.size -= num_bytes;
-        } while (pkt.size > 0);
-        av_packet_unref(&orig_pkt);}
-        else
-        {
-            break;
+            }
         }
     }
 
@@ -161,9 +173,15 @@ void *play_thread(void *x_void_ptr)
 
     uint8_t samples[buffer_size];
 
-    while(toto->Read(samples,1024)){
+    while(1){
         printf("#");
-        ao_play(device,(char*)samples, 1024);
+        pthread_mutex_lock(&lock);
+
+        if((toto->GetReadAvail()>1024)){
+            toto->Read(samples,1024);
+            ao_play(device,(char*)samples, 1024);
+        }
+        pthread_mutex_unlock(&lock);
     }
 
 /* the function must return something - NULL will do */
@@ -310,6 +328,12 @@ int main (int argc, char **argv)
     pthread_t decoding_thread;
     pthread_t soundcard_thread;
 
+    if (pthread_mutex_init(&lock, NULL) != 0)
+    {
+        printf("\n mutex init failed\n");
+        return 1;
+    }
+
     if(pthread_create(&decoding_thread, NULL, decode_thread, NULL)) {
 
         fprintf(stderr, "Error creating thread\n");
@@ -318,15 +342,15 @@ int main (int argc, char **argv)
     }
 
 
-
-    pthread_join(decoding_thread, NULL);
-
     if(pthread_create(&soundcard_thread, NULL, play_thread, NULL)) {
 
         fprintf(stderr, "Error creating thread\n");
         return 1;
 
     }
+
+    pthread_join(decoding_thread, NULL);
+
     pthread_join(soundcard_thread, NULL);
 
 
