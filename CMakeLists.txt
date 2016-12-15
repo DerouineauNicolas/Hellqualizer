@@ -7,11 +7,6 @@ INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR})
 INCLUDE_DIRECTORIES(/usr/local/include/)
 link_directories(/usr/local/lib/)
 
-#set(my_SOURCES ${PROJECT_SOURCE_DIR}/libao_ffmpeg.c
-#)
-
-add_compile_options(-D__STDC_CONSTANT_MACROS)
-
 add_executable(Decode_Audio2 
 	       ring_buffer.cpp
                demuxing_decoding_filtering.cpp)

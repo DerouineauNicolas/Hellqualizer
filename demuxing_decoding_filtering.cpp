@@ -1,3 +1,5 @@
+#define __STDC_CONSTANT_MACROS
+
 extern "C" {
 #include <libavutil/imgutils.h>
 #include <libavcodec/avcodec.h>
@@ -15,6 +17,7 @@ extern "C" {
 #include <limits>
 #include <pthread.h>
 #include <time.h>
+#include <unistd.h>
 
 static AVFormatContext *fmt_ctx = NULL;
 static AVCodecContext *video_dec_ctx = NULL, *audio_dec_ctx;
@@ -62,13 +65,13 @@ const int buffer_size=AVCODEC_MAX_AUDIO_FRAME_SIZE+ FF_INPUT_BUFFER_PADDING_SIZE
 //#include <queue>
 //std::queue <uint8_t*> myqueue;
 
-RingBuffer* toto= new RingBuffer(441000*2);
+RingBuffer* Buffer_decode_process= new RingBuffer(44100*2);
+//RingBuffer* Buffer_process_play= new RingBuffer(4410*2);
 
 
 #define AVCODEC_MAX_AUDIO_FRAME_SIZE 192000
 
 pthread_mutex_t lock;
-
 
 
 void decode_packet(int *got_frame, int *bytes_read,int cached)
@@ -116,7 +119,7 @@ void decode_packet(int *got_frame, int *bytes_read,int cached)
                     }
                 }
                 pthread_mutex_lock(&lock);
-                toto->Write(samples, ( plane_size/sizeof(float) )* sizeof(uint16_t) * audio_dec_ctx->channels);
+                Buffer_decode_process->Write(samples, ( plane_size/sizeof(float) )* sizeof(uint16_t) * audio_dec_ctx->channels);
                 pthread_mutex_unlock(&lock);
             }
         }
@@ -141,7 +144,7 @@ void *decode_thread(void *x_void_ptr)
     int got_space;
     while (1) {
         pthread_mutex_lock(&lock);
-        got_space=toto->GetWriteAvail();
+        got_space=Buffer_decode_process->GetWriteAvail();
         pthread_mutex_unlock(&lock);
         //printf("got_space= %d",got_space );
         if(got_space>5000){
@@ -170,18 +173,33 @@ return NULL;
 void *play_thread(void *x_void_ptr)
 {
     //static init_status;
+    int read_available=0;
+    int num_fail=0;
+    int i=1;
 
     uint8_t samples[buffer_size];
 
     while(1){
-        printf("#");
         pthread_mutex_lock(&lock);
-
-        if((toto->GetReadAvail()>1024)){
-            toto->Read(samples,1024);
-            ao_play(device,(char*)samples, 1024);
+        read_available=Buffer_decode_process->GetReadAvail();
+        if(read_available>2048){
+            Buffer_decode_process->Read(samples,2048);
+            ao_play(device,(char*)samples, 2048);
         }
         pthread_mutex_unlock(&lock);
+        if(read_available==0){
+            num_fail++;
+            //printf("Sleep\n");
+            //Let's try again later
+            usleep(100000);
+            //printf("Awake\n");
+        }
+        else
+            num_fail=0;
+        if(num_fail>(15)){
+            printf("No more data to play \n");
+            break;
+        }
     }
 
 /* the function must return something - NULL will do */
