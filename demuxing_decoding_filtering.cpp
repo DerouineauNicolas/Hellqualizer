@@ -19,26 +19,18 @@ extern "C" {
 #include <time.h>
 #include <unistd.h>
 
+#include <processing.h>
+
 static AVFormatContext *fmt_ctx = NULL;
 static AVCodecContext *video_dec_ctx = NULL, *audio_dec_ctx;
-static int width, height;
-static enum AVPixelFormat pix_fmt;
-static AVStream *video_stream = NULL, *audio_stream = NULL;
+static AVStream *audio_stream = NULL;
 static const char *src_filename = NULL;
-static const char *video_dst_filename = NULL;
-static const char *audio_dst_filename = NULL;
-static FILE *video_dst_file = NULL;
-static FILE *audio_dst_file = NULL;
 
+
+static int audio_stream_idx = -1;
 static uint8_t *video_dst_data[4] = {NULL};
-static int      video_dst_linesize[4];
-static int video_dst_bufsize;
-
-static int video_stream_idx = -1, audio_stream_idx = -1;
 static AVFrame *frame = NULL;
 static AVPacket pkt;
-static int video_frame_count = 0;
-static int audio_frame_count = 0;
 static int data_size=0;
 static int plane_size=0;
 
@@ -54,19 +46,14 @@ static int refcount = 0;
 static ao_device *device;
 static ao_sample_format ao_format;
 static int default_driver;
-static char *buffer;
-static int buf_size;
-static int sample;
-static float freq = 440.0;
-static int i;
 
 const int buffer_size=AVCODEC_MAX_AUDIO_FRAME_SIZE+ FF_INPUT_BUFFER_PADDING_SIZE;
 
-//#include <queue>
-//std::queue <uint8_t*> myqueue;
 
 RingBuffer* Buffer_decode_process= new RingBuffer(44100*2);
 //RingBuffer* Buffer_process_play= new RingBuffer(4410*2);
+
+int log_level=0;
 
 
 #define AVCODEC_MAX_AUDIO_FRAME_SIZE 192000
@@ -74,12 +61,14 @@ RingBuffer* Buffer_decode_process= new RingBuffer(44100*2);
 pthread_mutex_t lock;
 
 
+
+
 void decode_packet(int *got_frame, int *bytes_read,int cached)
 {
     int ret = 0;
-    int decoded = pkt.size;
 
     *got_frame = 0;
+    int decoded = pkt.size;
 
     if (pkt.stream_index == audio_stream_idx) {
         /* decode audio frame */
@@ -103,7 +92,7 @@ void decode_packet(int *got_frame, int *bytes_read,int cached)
          * Also, some decoders might over-read the packet. */
         decoded = FFMIN(ret, pkt.size);
 
-        uint8_t *samples= new uint8_t[buffer_size];
+        uint8_t samples[buffer_size];
         uint16_t *out = (uint16_t *)samples;
 
         if (*got_frame) {
@@ -114,21 +103,16 @@ void decode_packet(int *got_frame, int *bytes_read,int cached)
                         float sample = inputChannel[i];
                         if (sample<-1.0f) sample=-1.0f;
                         else if (sample>1.0f) sample=1.0f;
-
                         out[i*audio_dec_ctx->channels + j] = (int16_t) (sample * 32767.0f );
                     }
                 }
                 pthread_mutex_lock(&lock);
-                Buffer_decode_process->Write(samples, ( plane_size/sizeof(float) )* sizeof(uint16_t) * audio_dec_ctx->channels);
+                Buffer_decode_process->Write(samples, 2*audio_dec_ctx->channels*frame->nb_samples);
                 pthread_mutex_unlock(&lock);
             }
         }
     }
 
-    /* If we use frame reference counting, we own the data and need
-     * to de-reference it when we don't use it anymore */
-    if (*got_frame && refcount)
-        av_frame_unref(frame);
 
     if(!(ret<0))
         *bytes_read=ret;
@@ -163,6 +147,10 @@ void *decode_thread(void *x_void_ptr)
                 break;
             }
         }
+        else{
+            if(log_level)
+                printf("Input Buffer overflow !!! \n");
+        }
     }
 
 /* the function must return something - NULL will do */
@@ -170,20 +158,24 @@ return NULL;
 
 }
 
+
+
 void *play_thread(void *x_void_ptr)
 {
     //static init_status;
     int read_available=0;
     int num_fail=0;
-    int i=1;
 
-    uint8_t samples[buffer_size];
+    uint8_t *samples;//[buffer_size];
+    //printf("")
+    samples=(uint8_t*)malloc(buffer_size*sizeof(uint8_t));
 
     while(1){
         pthread_mutex_lock(&lock);
         read_available=Buffer_decode_process->GetReadAvail();
         if(read_available>2048){
             Buffer_decode_process->Read(samples,2048);
+            process(&samples,2048);
             ao_play(device,(char*)samples, 2048);
         }
         pthread_mutex_unlock(&lock);
@@ -201,6 +193,8 @@ void *play_thread(void *x_void_ptr)
             break;
         }
     }
+
+    free(samples);
 
 /* the function must return something - NULL will do */
    return NULL;
@@ -262,16 +256,21 @@ static int open_codec_context(int *stream_idx,
     return 0;
 }
 
+
+
 int main (int argc, char **argv)
 {
     int ret = 0; //got_frame;
 
 
-    if (argc != 2) {
-        fprintf(stderr, "Tu fais de la merde ma gueule \n");
+    if ( (argc <2) || (argc>3)) {
+        fprintf(stderr, "Wrong Usage \n");
         exit(1);
     }
     src_filename = argv[1];
+    if(argc>3)
+        log_level= atoi(argv[2]);
+
 
     /* register all formats and codecs */
     av_register_all();
