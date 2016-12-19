@@ -1,0 +1,14 @@
+nf=63;
+Fs=44100;
+bedge=[0,4000/Fs;5000/Fs,10000/Fs;11000/Fs,22000/Fs];
+des=[0 1 0];
+wate=[1 1 1];
+[hn]=eqfir(nf,bedge,des,wate);
+hn=hn*32768;
+hn=round(hn);
+[hm,fr]=frmag(hn,256);
+plot(fr,hm)
+
+if getos() == 'Windows' then unix('del foo');
+else unix('rm -f foo'); end
+write('coefficients',strcat(string(hn),','))
