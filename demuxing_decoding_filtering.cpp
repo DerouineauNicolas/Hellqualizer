@@ -165,18 +165,19 @@ void *play_thread(void *x_void_ptr)
     //static init_status;
     int read_available=0;
     int num_fail=0;
+    static int output_size=2048;
+    Processing* processor=new Processing(output_size);
 
-    uint8_t *samples;//[buffer_size];
-    //printf("")
+    uint8_t *samples;
     samples=(uint8_t*)malloc(buffer_size*sizeof(uint8_t));
 
     while(1){
         pthread_mutex_lock(&lock);
         read_available=Buffer_decode_process->GetReadAvail();
-        if(read_available>2048){
-            Buffer_decode_process->Read(samples,2048);
-            process(&samples,2048);
-            ao_play(device,(char*)samples, 2048);
+        if(read_available>output_size){
+            Buffer_decode_process->Read(samples,output_size);
+            processor->process(&samples,output_size);
+            ao_play(device,(char*)samples, output_size);
         }
         pthread_mutex_unlock(&lock);
         if(read_available==0){

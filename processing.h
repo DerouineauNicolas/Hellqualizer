@@ -1,9 +1,29 @@
 
 
+//////////////////////////////////////////////////////////////
+//  Filter Code Definitions
+//////////////////////////////////////////////////////////////
+
+// maximum number of inputs that can be handled
+// in one function call
+#define MAX_INPUT_LEN   80
+// maximum length of filter than can be handled
+#define MAX_FLT_LEN     63
+// buffer to hold all of the input samples
+#define BUFFER_LEN      (MAX_FLT_LEN - 1 + MAX_INPUT_LEN)
+
+class Processing
+{
+public:
+    Processing( int sample_size);
+    ~Processing();
+    void process(uint8_t **samples_in, int size );
+private:
+    uint16_t *right_ch_in;
+    uint16_t *left_ch_in;
+    uint16_t *right_ch_out;
+    uint16_t *left_ch_out;
+};
 
 
-void process(uint8_t **samples_in, int size);
 
-// the FIR filter function
-void firFixed( int16_t *coeffs, int16_t *input, int16_t *output,
-       int length, int filterLength );

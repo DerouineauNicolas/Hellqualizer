@@ -3,18 +3,19 @@
 #include <stdlib.h>
 #include <string.h>
 #include <processing.h>
- 
-//////////////////////////////////////////////////////////////
-//  Filter Code Definitions
-//////////////////////////////////////////////////////////////
- 
-// maximum number of inputs that can be handled
-// in one function call
-#define MAX_INPUT_LEN   80
-// maximum length of filter than can be handled
-#define MAX_FLT_LEN     63
-// buffer to hold all of the input samples
-#define BUFFER_LEN      (MAX_FLT_LEN - 1 + MAX_INPUT_LEN)
+
+Processing::Processing(int size){
+    right_ch_in=(uint16_t*)malloc((size/2)*sizeof(uint16_t));
+    left_ch_in=(uint16_t*)malloc((size/2)*sizeof(uint16_t));
+    //right_ch_out=(uint16_t*)malloc((size/2)*sizeof(uint16_t));
+    //left_ch_out=(uint16_t*)malloc((size/2)*sizeof(uint16_t));
+}
+
+Processing::~Processing(){
+    free(right_ch_in);
+    free(left_ch_in);
+}
+
  
 // array to hold input samples
 int16_t insamp[ BUFFER_LEN ];
@@ -77,27 +78,33 @@ void firFixed( int16_t *coeffs, int16_t *input, int16_t *output,
 #define FILTER_LEN  63
 int16_t coeffs[ FILTER_LEN ] =
 {
- -1468, 1058,   594,   287,    186,  284,   485,   613,
-   495,   90,  -435,  -762,   -615,   21,   821,  1269,
-   982,    9, -1132, -1721,  -1296,    1,  1445,  2136,
-  1570,    0, -1666, -2413,  -1735,   -2,  1770,  2512,
-  1770,   -2, -1735, -2413,  -1666,    0,  1570,  2136,
-  1445,    1, -1296, -1721,  -1132,    9,   982,  1269,
-   821,   21,  -615,  -762,   -435,   90,   495,   613,
-   485,  284,   186,   287,    594, 1058, -1468
+    -179,319,-176,50,506,543,25,-383,-217,11,-253,-466,86
+    ,815,632,-98,-145,273,-225,-1371,-1190,531,1388,440,153,1826,2036,-2161,-6608,
+    -4213,4160,8922,4160,-4213,-6608,-2161,2036,1826,153,440,1388,531,-1190,-1371,-225,273,
+    -145,-98,632,815,86,-466,-253,11,-217,-383,25,543,506,50,-176,319,-179
 };
  
 // number of samples to read per loop
 #define SAMPLES   80 
 
-void process(uint8_t **samples_in, int size){
+void Processing::process(uint8_t **samples_in, int size){
 
-    uint16_t **out = (uint16_t **)samples_in;
+    uint16_t **in = (uint16_t **)samples_in;
 
     for(int i=0;i<size;i++){
-//        if((i%2)==1){
-//            (*out)[i]=0;
-//        }
+        if((i%2)==0)
+           left_ch_in[i/2]=(*in)[i];
+        else
+           right_ch_in[i/2]=(*in)[i];
     }
 
+    //memset(right_ch_in,0,(size/2));
+    //firFixed(coeffs,(int16_t*)left_ch_in,(int16_t*)left_ch_in,(size/2),63);
+
+    for(int i=0;i<size;i++){
+        if((i%2)==0)
+           (*in)[i]=left_ch_in[i/2];
+        else
+           (*in)[i]=right_ch_in[i/2];;
+    }
 }
