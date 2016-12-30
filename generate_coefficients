@@ -9,6 +9,6 @@ hn=round(hn);
 [hm,fr]=frmag(hn,256);
 plot(fr,hm)
 
-if getos() == 'Windows' then unix('del foo');
-else unix('rm -f foo'); end
+if getos() == 'Windows' then unix('del coefficients');
+else unix('rm -f coefficients'); end
 write('coefficients',strcat(string(hn),','))
