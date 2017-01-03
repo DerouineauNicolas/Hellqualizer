@@ -16,4 +16,11 @@ To compile it, you need cmake , ffmpeg-dev (>=V3.0.0) and libao-dev installed in
 
 ./Decode_Audio2 ~/musique/some_music.mp4
 
-Please note that only aac streams have been tested so far.
+Please note that only aac streams are supported at the moment.
+
+The filter coefficients were generated with scilab using the equiribble constrain.
+The current filter is 63 taps pass-band filter centered between 5 and 10 kHz.
+Only floating point is used at the moment.
+
+
+Filtering is only applied on the left channel.
