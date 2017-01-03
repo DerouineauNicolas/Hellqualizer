@@ -70,12 +70,12 @@ void firFixed( int16_t *coeffs, int16_t *input, int16_t *output,
         for ( k = 0; k < filterLength; k++ ) {
             acc += (int32_t)(*coeffp++) * (int32_t)(*inputp--);
         }
-        //        // saturate the result
-        //        if ( acc > 0x3fffffff ) {
-        //            acc = 0x3fffffff;
-        //        } else if ( acc < -0x40000000 ) {
-        //            acc = -0x40000000;
-        //        }
+        // saturate the result
+        if ( acc > 0x3fffffff ) {
+            acc = 0x3fffffff;
+        } else if ( acc < -0x40000000 ) {
+            acc = -0x40000000;
+        }
         // convert from Q30 to Q15
         output[n] = (int16_t)(acc >> 15);
     }
@@ -86,25 +86,9 @@ void firFixed( int16_t *coeffs, int16_t *input, int16_t *output,
 
 }
 
-//////////////////////////////////////////////////////////////
-//  Test program
-//////////////////////////////////////////////////////////////
-
-// bandpass filter centred around 1000 Hz
-// sampling rate = 8000 Hz
-// gain at 1000 Hz is about 1.13
-
+// bandpass filter centred around between 5000 and 10000kHz
 #define FILTER_LEN  63
-//int16_t coeffs[ FILTER_LEN ] =
-//{
-//    -179,319,-176,50,506,543,25,-383,-217,11,-253,-466,86
-//    ,815,632,-98,-145,273,-225,-1371,-1190,531,1388,440,153,1826,2036,-2161,-6608,
-//    -4213,4160,8922,4160,-4213,-6608,-2161,2036,1826,153,440,1388,531,-1190,-1371,-225,273,
-//    -145,-98,632,815,86,-466,-253,11,-217,-383,25,543,506,50,-176,319,-179
-//};
-
-//#define FILTER_LEN  63
-double coeffs2[ FILTER_LEN ] =
+double coeffs_bp_5000_10000[ FILTER_LEN ] =
 {
     //    -0.0448093,0.005
     -0.0054685,0.0097457,-0.0053658,0.0015182,0.0154469,0.0165822,0.0007649,-0.011696,
@@ -115,6 +99,16 @@ double coeffs2[ FILTER_LEN ] =
     -0.0363057,-0.0418269,-0.0068648,0.0083433,-0.0044339,-0.0030055,0.0192814,0.0248596,0.0026186,-0.0142352,
     -0.0077141,0.0003359,-0.0066276,-0.011696,0.0007649,0.0165822,0.0154469,0.0015182,-0.0053658,0.0097457,
     -0.0054685
+};
+
+// Low pass filter from 0 to 5000kHz
+double coeffs_lp_0_5000[ FILTER_LEN ] =
+{
+    0.0137572,-0.0021217,-0.0056138,-0.0074873,-0.0076700,-0.0073137,-0.0048236,0.0011468,0.0075766,0.0096836,0.0069478,0.0019516,-0.0041731,-0.0114084,
+    -0.0160477,-0.0131499,-0.0028137,0.0092241,0.0183042,0.0224698,0.0190012,0.0048048,-0.0168556,-0.0358260,-0.0423656,-0.0324079,-0.0043603,
+    0.0416495,0.0990781,0.1533275,0.1902280,0.2029056,0.1902280,0.1533275,0.0990781,0.0416495,-0.0043603,-0.0324079,-0.0423656,-0.0358260,
+    -0.0168556,0.0048048,0.0190012,0.0224698,0.0183042,0.0092241,-0.0028137,-0.0131499,-0.0160477,-0.0114084,-0.0041731,0.0019516,0.0069478,
+    0.0096836,0.0075766,0.0011468,-0.0048236,-0.0073137,-0.0076700,-0.0074873,-0.0056138,-0.0021217,0.0137572
 };
 
 // the FIR filter function
@@ -192,15 +186,30 @@ void Processing::process(uint8_t **samples_in, int size, int process){
 
         memset(left_ch_in,0, (size/4)*sizeof(uint16_t));
 
+//        intToFloat( (int16_t*)left_ch_in, f_left_ch_in, (size/4) );
+//        if(process==2)
+//            firFloat( coeffs_bp_5000_10000, f_left_ch_in, f_left_ch_out, (size/4),
+//                      FILTER_LEN );
+//        else
+//            firFloat( coeffs_lp_0_5000, f_left_ch_in, f_left_ch_out, (size/4),
+//                      FILTER_LEN );
+
+//        floatToInt( f_left_ch_out, left_ch_out, (size/4) );
+
         intToFloat( (int16_t*)right_ch_in, f_right_ch_in, (size/4) );
-        firFloat( coeffs2, f_right_ch_in, f_right_ch_out, (size/4),
-                  FILTER_LEN );
+        if(process==2)
+            firFloat( coeffs_bp_5000_10000, f_right_ch_in, f_right_ch_out, (size/4),
+                      FILTER_LEN );
+        else
+            firFloat( coeffs_lp_0_5000, f_right_ch_in, f_right_ch_out, (size/4),
+                      FILTER_LEN );
+
         floatToInt( f_right_ch_out, right_ch_out, (size/4) );
 
 
         for(int i=0;i<size/2;i++){
             if((i%2)==0)
-                (*in)[i]=left_ch_in[i/2];
+                (*in)[i]=left_ch_out[i/2];
             else
                 (*in)[i]=right_ch_out[i/2];
         }
