@@ -184,23 +184,24 @@ void Processing::process(uint8_t **samples_in, int size){
     uint16_t **in = (uint16_t **)samples_in;
     //int16_t **tmp[3000];
 
-    for(int i=0;i<size;i++){
-        if((i%2)==0)
+    for(int i=0;i<size/2;i++){
+        if((i%2)==0){
            left_ch_in[i/2]=(*in)[i];
-        else
+        }
+        else{
            right_ch_in[i/2]=(*in)[i];
+        }
     }
 
-    //memccpy(right_ch_out,right_ch_in,sizeof(uint16_t),(size/2));
-    //memset(left_ch_in,0,(size/2));
-    //firFixed(coeffs,(int16_t*)right_ch_in,right_ch_out,(size/2),63);
+    //memset(left_ch_in,0,(size/2)*sizeof(uint16_t));
+
     intToFloat( (int16_t*)right_ch_in, f_right_ch_in, (size/2) );
-    //firFloat( coeffs2, f_right_ch_in, f_right_ch_out, (size/2),
-    //       FILTER_LEN );
-    memcpy((float*)f_right_ch_out,(float*)f_right_ch_in,(size/2)*sizeof(float));
+    firFloat( coeffs2, f_right_ch_in, f_right_ch_out, (size/2),
+           FILTER_LEN );
     floatToInt( f_right_ch_out, right_ch_out, (size/2) );
 
-    for(int i=0;i<size;i++){
+
+    for(int i=0;i<size/2;i++){
         if((i%2)==0)
            (*in)[i]=left_ch_in[i/2];
         else
