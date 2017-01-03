@@ -45,25 +45,20 @@ Processing::~Processing(){
     free(f_left_ch_in);
 }
 
- 
-
- 
-
- 
 // the FIR filter function
 void firFixed( int16_t *coeffs, int16_t *input, int16_t *output,
-       int length, int filterLength )
+               int length, int filterLength )
 {
     int32_t acc;     // accumulator for MACs
     int16_t *coeffp; // pointer to coefficients
     int16_t *inputp; // pointer to input samples
     int n;
     int k;
- 
+
     // put the new samples at the high end of the buffer
     memcpy( &insamp[filterLength - 1], input,
             length * sizeof(int16_t) );
- 
+
     // apply the filter to each input sample
     for ( n = 0; n < length; n++ ) {
         // calculate output n
@@ -75,30 +70,30 @@ void firFixed( int16_t *coeffs, int16_t *input, int16_t *output,
         for ( k = 0; k < filterLength; k++ ) {
             acc += (int32_t)(*coeffp++) * (int32_t)(*inputp--);
         }
-//        // saturate the result
-//        if ( acc > 0x3fffffff ) {
-//            acc = 0x3fffffff;
-//        } else if ( acc < -0x40000000 ) {
-//            acc = -0x40000000;
-//        }
+        //        // saturate the result
+        //        if ( acc > 0x3fffffff ) {
+        //            acc = 0x3fffffff;
+        //        } else if ( acc < -0x40000000 ) {
+        //            acc = -0x40000000;
+        //        }
         // convert from Q30 to Q15
         output[n] = (int16_t)(acc >> 15);
     }
- 
+
     // shift input samples back in time for next time
     memmove( &insamp[0], &insamp[length],
             (filterLength - 1) * sizeof(int16_t) );
- 
+
 }
- 
+
 //////////////////////////////////////////////////////////////
 //  Test program
 //////////////////////////////////////////////////////////////
- 
+
 // bandpass filter centred around 1000 Hz
 // sampling rate = 8000 Hz
 // gain at 1000 Hz is about 1.13
- 
+
 #define FILTER_LEN  63
 //int16_t coeffs[ FILTER_LEN ] =
 //{
@@ -111,20 +106,20 @@ void firFixed( int16_t *coeffs, int16_t *input, int16_t *output,
 //#define FILTER_LEN  63
 double coeffs2[ FILTER_LEN ] =
 {
-//    -0.0448093,0.005
+    //    -0.0448093,0.005
     -0.0054685,0.0097457,-0.0053658,0.0015182,0.0154469,0.0165822,0.0007649,-0.011696,
-   -0.0066276,0.0003359,-0.0077141,-0.0142352,0.0026186,0.0248596,0.0192814,-0.0030055,
-   -0.0044339,0.0083433,-0.0068648,-0.0418269,-0.0363057,0.0162062,0.0423516,0.0134343,
-   0.0046763,0.0557132,0.0621480,-0.0659334,-0.2016687,-0.1285787,0.1269571,0.2722713,0.1269571,
-   -0.1285787,-0.2016687,-0.0659334,0.0621480,0.0557132,0.0046763,0.0134343,0.0423516,0.0162062,
-   -0.0363057,-0.0418269,-0.0068648,0.0083433,-0.0044339,-0.0030055,0.0192814,0.0248596,0.0026186,-0.0142352,
-   -0.0077141,0.0003359,-0.0066276,-0.011696,0.0007649,0.0165822,0.0154469,0.0015182,-0.0053658,0.0097457,
-   -0.0054685
+    -0.0066276,0.0003359,-0.0077141,-0.0142352,0.0026186,0.0248596,0.0192814,-0.0030055,
+    -0.0044339,0.0083433,-0.0068648,-0.0418269,-0.0363057,0.0162062,0.0423516,0.0134343,
+    0.0046763,0.0557132,0.0621480,-0.0659334,-0.2016687,-0.1285787,0.1269571,0.2722713,0.1269571,
+    -0.1285787,-0.2016687,-0.0659334,0.0621480,0.0557132,0.0046763,0.0134343,0.0423516,0.0162062,
+    -0.0363057,-0.0418269,-0.0068648,0.0083433,-0.0044339,-0.0030055,0.0192814,0.0248596,0.0026186,-0.0142352,
+    -0.0077141,0.0003359,-0.0066276,-0.011696,0.0007649,0.0165822,0.0154469,0.0015182,-0.0053658,0.0097457,
+    -0.0054685
 };
 
 // the FIR filter function
 void firFloat( double *coeffs, double *input, double *output,
-       int length, int filterLength )
+               int length, int filterLength )
 {
     double acc;     // accumulator for MACs
     double *coeffp; // pointer to coefficients
@@ -177,34 +172,37 @@ void floatToInt( double *input, int16_t *output, int length )
         output[i] = (int16_t)input[i];
     }
 }
- 
 
-void Processing::process(uint8_t **samples_in, int size){
+
+void Processing::process(uint8_t **samples_in, int size, int process){
 
     uint16_t **in = (uint16_t **)samples_in;
     //int16_t **tmp[3000];
 
-    for(int i=0;i<size/2;i++){
-        if((i%2)==0){
-           left_ch_in[i/2]=(*in)[i];
+    if(process){
+
+        for(int i=0;i<size/2;i++){
+            if((i%2)==0){
+                left_ch_in[i/2]=(*in)[i];
+            }
+            else{
+                right_ch_in[i/2]=(*in)[i];
+            }
         }
-        else{
-           right_ch_in[i/2]=(*in)[i];
+
+        memset(left_ch_in,0, (size/4)*sizeof(uint16_t));
+
+        intToFloat( (int16_t*)right_ch_in, f_right_ch_in, (size/4) );
+        firFloat( coeffs2, f_right_ch_in, f_right_ch_out, (size/4),
+                  FILTER_LEN );
+        floatToInt( f_right_ch_out, right_ch_out, (size/4) );
+
+
+        for(int i=0;i<size/2;i++){
+            if((i%2)==0)
+                (*in)[i]=left_ch_in[i/2];
+            else
+                (*in)[i]=right_ch_out[i/2];
         }
-    }
-
-    //memset(left_ch_in,0,(size/2)*sizeof(uint16_t));
-
-    intToFloat( (int16_t*)right_ch_in, f_right_ch_in, (size/2) );
-    firFloat( coeffs2, f_right_ch_in, f_right_ch_out, (size/2),
-           FILTER_LEN );
-    floatToInt( f_right_ch_out, right_ch_out, (size/2) );
-
-
-    for(int i=0;i<size/2;i++){
-        if((i%2)==0)
-           (*in)[i]=left_ch_in[i/2];
-        else
-           (*in)[i]=right_ch_out[i/2];;
     }
 }

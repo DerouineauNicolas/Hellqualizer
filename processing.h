@@ -17,7 +17,7 @@ class Processing
 public:
     Processing( int sample_size);
     ~Processing();
-    void process(uint8_t **samples_in, int size );
+    void process(uint8_t **samples_in, int size , int options);
 private:
     uint16_t *right_ch_in;
     uint16_t *left_ch_in;

@@ -75,7 +75,7 @@ void decode_packet(int *got_frame, int *bytes_read,int cached)
 
         ret = avcodec_decode_audio4(audio_dec_ctx, frame, got_frame, &pkt);
         if (ret < 0) {
-           /*fprintf(stderr, "Error decoding audio frame (%s)\n", av_err2str(ret));*/
+            /*fprintf(stderr, "Error decoding audio frame (%s)\n", av_err2str(ret));*/
             //return ret;
             *bytes_read=-1;
             goto endofdecoding;
@@ -117,7 +117,7 @@ void decode_packet(int *got_frame, int *bytes_read,int cached)
     if(!(ret<0))
         *bytes_read=ret;
 endofdecoding:
-;
+    ;
 
     //return decoded;
 }
@@ -153,12 +153,12 @@ void *decode_thread(void *x_void_ptr)
         }
     }
 
-/* the function must return something - NULL will do */
-return NULL;
+    /* the function must return something - NULL will do */
+    return NULL;
 
 }
 
-
+int processing_options=0;
 
 void *play_thread(void *x_void_ptr)
 {
@@ -176,7 +176,7 @@ void *play_thread(void *x_void_ptr)
         read_available=Buffer_decode_process->GetReadAvail();
         if(read_available>output_size){
             Buffer_decode_process->Read(samples,output_size);
-            processor->process(&samples,output_size);
+            processor->process(&samples,output_size, processing_options);
             ao_play(device,(char*)samples, output_size);
         }
         pthread_mutex_unlock(&lock);
@@ -197,8 +197,8 @@ void *play_thread(void *x_void_ptr)
 
     free(samples);
 
-/* the function must return something - NULL will do */
-   return NULL;
+    /* the function must return something - NULL will do */
+    return NULL;
 
 }
 
@@ -264,13 +264,17 @@ int main (int argc, char **argv)
     int ret = 0; //got_frame;
 
 
-    if ( (argc <2) || (argc>3)) {
+    if ( (argc <2)) {
         fprintf(stderr, "Wrong Usage \n");
         exit(1);
     }
     src_filename = argv[1];
-    if(argc>3)
-        log_level= atoi(argv[2]);
+    if(argc>3){
+        if(!strcmp(argv[2],"-v"))
+            log_level= atoi(argv[2]);
+        else if(!strcmp(argv[2],"-f"))
+            processing_options= atoi(argv[3]);
+    }
 
 
     /* register all formats and codecs */
@@ -314,7 +318,7 @@ int main (int argc, char **argv)
     pkt.data = NULL;
     pkt.size = 0;
 
-   //LIBAO INIT
+    //LIBAO INIT
     ao_initialize();
 
     /* -- Setup for default driver -- */
