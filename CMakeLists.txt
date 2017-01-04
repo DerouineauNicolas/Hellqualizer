@@ -12,7 +12,7 @@ set (CMAKE_CXX_FLAGS "-Wall")
 add_executable(Decode_Audio2 
                ring_buffer.cpp
                processing.cpp
-               demuxing_decoding_filtering.cpp)
+               demuxing_decoding.cpp)
 
 
 target_link_libraries(Decode_Audio2
