@@ -60,6 +60,7 @@ int log_level=0;
 
 pthread_mutex_t lock;
 pthread_cond_t signal;
+int EndofDecoding=0;
 
 
 
@@ -146,6 +147,9 @@ void *decode_thread(void *x_void_ptr)
                 av_packet_unref(&orig_pkt);}
             else
             {
+                pthread_mutex_lock(&lock);
+                EndofDecoding=1;
+                pthread_mutex_unlock(&lock);
                 break;
             }
         }
@@ -175,8 +179,13 @@ void *play_thread(void *x_void_ptr)
 
     while(1){
         pthread_mutex_lock(&lock);
-        while(Buffer_decode_process->GetReadAvail()<output_size)
+        while(Buffer_decode_process->GetReadAvail()<output_size){
+            if(EndofDecoding)
+                break;
             pthread_cond_wait(&signal, &lock);
+        }
+        if(EndofDecoding)
+            break;
         Buffer_decode_process->Read(samples,output_size);
         processor->process(&samples,output_size, processing_options);
         ao_play(device,(char*)samples, output_size);
