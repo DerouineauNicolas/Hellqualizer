@@ -59,6 +59,7 @@ int log_level=0;
 #define AVCODEC_MAX_AUDIO_FRAME_SIZE 192000
 
 pthread_mutex_t lock;
+pthread_cond_t signal;
 
 
 
@@ -109,6 +110,7 @@ void decode_packet(int *got_frame, int *bytes_read,int cached)
                 pthread_mutex_lock(&lock);
                 Buffer_decode_process->Write(samples, 2*audio_dec_ctx->channels*frame->nb_samples);
                 pthread_mutex_unlock(&lock);
+                pthread_cond_signal(&signal);
             }
         }
     }
@@ -173,26 +175,12 @@ void *play_thread(void *x_void_ptr)
 
     while(1){
         pthread_mutex_lock(&lock);
-        read_available=Buffer_decode_process->GetReadAvail();
-        if(read_available>output_size){
-            Buffer_decode_process->Read(samples,output_size);
-            processor->process(&samples,output_size, processing_options);
-            ao_play(device,(char*)samples, output_size);
-        }
+        while(Buffer_decode_process->GetReadAvail()<output_size)
+            pthread_cond_wait(&signal, &lock);
+        Buffer_decode_process->Read(samples,output_size);
+        processor->process(&samples,output_size, processing_options);
+        ao_play(device,(char*)samples, output_size);
         pthread_mutex_unlock(&lock);
-        if(read_available==0){
-            num_fail++;
-            //printf("Sleep\n");
-            //Let's try again later
-            usleep(100000);
-            //printf("Awake\n");
-        }
-        else
-            num_fail=0;
-        if(num_fail>(15)){
-            printf("No more data to play \n");
-            break;
-        }
     }
 
     free(samples);
