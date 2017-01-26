@@ -9,8 +9,9 @@
 #include <unistd.h>
 #include <processing.h>
 #include <demuxing_decoding.h>
+#include <rendering.h>
 
-RingBuffer* Buffer_decode_process= new RingBuffer(44100*2);
+
 
 int log_level=0;
 int processing_options=0;
@@ -31,22 +32,26 @@ int main (int argc, char **argv)
         processing_options= atoi(argv[3]);
     }
 
-    /* read frames from the file */
+    pthread_mutex_t m_mutex=PTHREAD_MUTEX_INITIALIZER;
+    pthread_cond_t m_signal;
+    RingBuffer* Buffer_decode_process= new RingBuffer(44100*2);
+    int EndOfDecoding=0;
+
+    DemuxDecode *decoder=new DemuxDecode(src_filename,&m_mutex,&m_signal,Buffer_decode_process,&EndOfDecoding);
+    Rendering *renderer=new Rendering(&m_mutex,&m_signal,decoder->GetFormatCtx(),decoder->GetAVCtx(),Buffer_decode_process,&EndOfDecoding);
+
+
+    decoder->StartInternalThread();
+    renderer->StartInternalThread();
+    decoder->WaitForInternalThreadToExit();
+    renderer->WaitForInternalThreadToExit();
 
 //    pthread_t decoding_thread;
 //    pthread_t soundcard_thread;
 
-//    if (pthread_mutex_init(&lock, NULL) != 0)
-//    {
-//    printf("\n mutex init failed\n");
-//    return 1;
-//    }
-
-//    if(pthread_create(&decoding_thread, NULL, decode_thread, NULL)) {
-
-//    fprintf(stderr, "Error creating thread\n");
-//    return 1;
-
+//    if(pthread_create(&decoding_thread, NULL, &Cd, NULL)) {
+//        fprintf(stderr, "Error creating thread\n");
+//        return 1;
 //    }
 
 

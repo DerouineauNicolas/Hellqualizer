@@ -9,18 +9,23 @@ extern "C" {
 
 #include <pthread.h>
 #include <ring_buffer.h>
+#include <threadclass.h>
 
 #define AVCODEC_MAX_AUDIO_FRAME_SIZE 192000
 
 
-class DemuxDecode
+class DemuxDecode: public MyThreadClass
 {
 public:
     DemuxDecode(const char* src_file_name, pthread_mutex_t *mutex, pthread_cond_t *signal, RingBuffer *Buffer_decode_process, int *endofdecoding);
+    DemuxDecode();
     ~DemuxDecode();
     void decode_packet(int *got_frame, int *bytes_read,int cached);
     void *decode_thread(void *x_void_ptr);
+    AVFormatContext* GetFormatCtx(void);
+    AVCodecContext* GetAVCtx(void);
 private:
+     void InternalThreadEntry();
      AVFormatContext *fmt_ctx;// = NULL;
      AVCodecContext *video_dec_ctx; //= NULL, ;
      AVCodecContext *audio_dec_ctx;

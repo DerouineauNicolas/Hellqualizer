@@ -2,7 +2,7 @@
 
 /*############################LIBABO############*/
 
-Rendering::Rendering(pthread_mutex_t *mutex,pthread_cond_t *signal, AVFormatContext *fmt_ctx,AVCodecContext *video_dec_ctx,AVCodecContext *audio_dec_ctx,
+Rendering::Rendering(pthread_mutex_t *mutex,pthread_cond_t *signal, AVFormatContext *fmt_ctx,AVCodecContext *audio_dec_ctx,
                           RingBuffer *Buffer_decode_process, int *endofdecoding
                      ){
 
@@ -24,6 +24,7 @@ Rendering::Rendering(pthread_mutex_t *mutex,pthread_cond_t *signal, AVFormatCont
     else
     {
     //exit(1);
+        printf("Format not detected \n");
     }
 
     /* -- Open driver -- */
@@ -53,23 +54,30 @@ void *Rendering::play_thread(void *x_void_ptr)
     samples=(uint8_t*)malloc(buffer_size*sizeof(uint8_t));
 
     while(1){
-    pthread_mutex_lock(m_mutex);
-    while(m_buffer_decode_process->GetReadAvail()<output_size){
-        if(*m_endofdecoding)
-        break;
-        pthread_cond_wait(m_signal, m_mutex);
-    }
-    if(*m_endofdecoding)
-        break;
-    m_buffer_decode_process->Read(samples,output_size);
-    processor->process(&samples,output_size, processing_options);
-    ao_play(device,(char*)samples, output_size);
-    pthread_mutex_unlock(m_mutex);
+        pthread_mutex_lock(m_mutex);
+        //    while(m_buffer_decode_process->GetReadAvail()<output_size){
+        //        if(*m_endofdecoding)
+        //        break;
+        //        //pthread_cond_wait(m_signal, m_mutex);
+        //    }
+        //    if(*m_endofdecoding)
+        //        break;
+        read_available=m_buffer_decode_process->GetReadAvail();
+        if(read_available>output_size){
+            m_buffer_decode_process->Read(samples,output_size);
+            processor->process(&samples,output_size, processing_options);
+            ao_play(device,(char*)samples, output_size);
+        }
+        pthread_mutex_unlock(m_mutex);
     }
 
     free(samples);
 
     /* the function must return something - NULL will do */
-    return NULL;
+    //return NULL;
 
+}
+
+void Rendering::InternalThreadEntry(){
+   this->play_thread(NULL);
 }

@@ -11,24 +11,26 @@ extern "C" {
 #include <ao/ao.h>
 #include <ring_buffer.h>
 #include <processing.h>
+#include <threadclass.h>
 
 #define AVCODEC_MAX_AUDIO_FRAME_SIZE 192000
 
 
-class Rendering
+class Rendering:public MyThreadClass
 {
 public:
-    Rendering(pthread_mutex_t *m_mutex,pthread_cond_t *m_signal, AVFormatContext *fmt_ctx,AVCodecContext *video_dec_ctx,AVCodecContext *audio_dec_ctx,
+    Rendering(pthread_mutex_t *m_mutex,pthread_cond_t *m_signal, AVFormatContext *fmt_ctx,AVCodecContext *audio_dec_ctx,
                               RingBuffer *Buffer_decode_process,int *endofdecoding
                               );
     ~Rendering();
     //void decode_packet(int *got_frame, int *bytes_read,int cached);
     void *play_thread(void *x_void_ptr);
 private:
+    void InternalThreadEntry();
     pthread_mutex_t *m_mutex;
     pthread_cond_t *m_signal;
     AVFormatContext *fmt_ctx;// = NULL;
-    AVCodecContext *video_dec_ctx; //= NULL, ;
+    //AVCodecContext *video_dec_ctx; //= NULL, ;
     AVCodecContext *audio_dec_ctx;
     int *m_endofdecoding;
     ao_device *device;

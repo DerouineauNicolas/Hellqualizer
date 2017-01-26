@@ -1,4 +1,5 @@
-
+#ifndef _PROCESSING
+#define _PROCESSING
 
 //////////////////////////////////////////////////////////////
 //  Filter Code Definitions
@@ -28,6 +29,8 @@ private:
     double *f_right_ch_in;
     double *f_left_ch_in;
 };
+
+#endif
 
 
 
