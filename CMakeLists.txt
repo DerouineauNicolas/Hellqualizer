@@ -7,12 +7,14 @@ INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR})
 INCLUDE_DIRECTORIES(/usr/local/include/)
 link_directories(/usr/local/lib/)
 
-set (CMAKE_CXX_FLAGS "-Wall")
+set (CMAKE_CXX_FLAGS "-g -Wall")
 
-add_executable(Decode_Audio2 
-               ring_buffer.cpp
-               processing.cpp
-               demuxing_decoding.cpp)
+add_executable(Decode_Audio2
+    main.cpp
+    rendering.cpp
+    ring_buffer.cpp
+    processing.cpp
+    demuxing_decoding.cpp)
 
 
 target_link_libraries(Decode_Audio2

@@ -1,3 +1,5 @@
+#ifndef _RINGBUFFER
+#define _RINGBUFFER
 class RingBuffer
 {
 public:
@@ -16,3 +18,4 @@ private:
     int _writePtr;
     int _writeBytesAvail;
 };
+#endif
