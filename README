@@ -1,26 +1,30 @@
-#Intro
+Intro
+_________
 
 This program is decoding, filtering and playing encoded audio streams in real time
 
-#Compilation
+Compilation
+___________
 
 To compile it, you need cmake , ffmpeg-dev (>=V3.0.0) and libao-dev installed in /usr/local/
 
-1, clone the project in $PROJECT_DIR
-2, Create shallow build directory (ie: mkdir $PROJECT_DIR/build)
-3, cd $PROJECT_DIR/build
-4, cmake ..
-5, make
+First, clone the project in $PROJECT_DIR, then:
 
-#Execution 
+ 	mkdir $PROJECT_DIR/build
+	cd $PROJECT_DIR/build
+	cmake ..
+	make
 
-./Decode_Audio2 ~/musique/some_music.mp4
+Execution
+___________
+ 
+	./Decode_Audio2 ~/musique/some_music.mp4
 This will decode and play the bitstream
 
-./Decode_Audio2 ~/musique/some_music.mp4 -f 1
+	./Decode_Audio2 ~/musique/some_music.mp4 -f 1
 This will decode, filter the sound with a LP filter 0-5000 Hz
 
-./Decode_Audio2 ~/musique/some_music.mp4 -f 2
+	./Decode_Audio2 ~/musique/some_music.mp4 -f 2
 This will decode, filter the sound with a BP filter 5000-10000 Hz
 
 Please note that only stereo aac streams 44100 kHz/s are currently supported.
@@ -28,5 +32,3 @@ Please note that only stereo aac streams 44100 kHz/s are currently supported.
 The filter coefficients are generated with scilab using the equiribble constrain.
 Only floating point is used at the moment, but fixed point is already implemented.
 
-Since convolution needs its own context to keep the past samples, only the left channel
-is currently processed.
