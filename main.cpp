@@ -46,31 +46,9 @@ int main (int argc, char **argv)
     decoder->WaitForInternalThreadToExit();
     renderer->WaitForInternalThreadToExit();
 
-//    pthread_t decoding_thread;
-//    pthread_t soundcard_thread;
+    delete decoder;
+    delete renderer;
 
-//    if(pthread_create(&decoding_thread, NULL, &Cd, NULL)) {
-//        fprintf(stderr, "Error creating thread\n");
-//        return 1;
-//    }
-
-
-//    if(pthread_create(&soundcard_thread, NULL, play_thread, NULL)) {
-
-//    fprintf(stderr, "Error creating thread\n");
-//    return 1;
-
-//    }
-
-//    pthread_join(decoding_thread, NULL);
-
-//    pthread_join(soundcard_thread, NULL);
-
-
-//    /* -- Close and shutdown -- */
-//    ao_close(device);
-
-//    ao_shutdown();
 
 //end:
 //    avcodec_free_context(&video_dec_ctx);

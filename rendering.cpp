@@ -40,6 +40,11 @@ Rendering::Rendering(pthread_mutex_t *mutex,pthread_cond_t *signal, AVFormatCont
     m_buffer_decode_process=Buffer_decode_process;
 }
 
+Rendering::~Rendering(){
+        ao_close(device);
+        ao_shutdown();
+}
+
 void *Rendering::play_thread(void *x_void_ptr)
 {
     //static init_status;
