@@ -3,7 +3,7 @@
 /*############################LIBABO############*/
 
 Rendering::Rendering(pthread_mutex_t *mutex,pthread_cond_t *signal, AVFormatContext *fmt_ctx,AVCodecContext *audio_dec_ctx,
-                          RingBuffer *Buffer_decode_process, int *endofdecoding
+                          RingBuffer *Buffer_decode_process, int *endofdecoding, int processing_options
                      ){
 
     //LIBAO INIT
@@ -30,14 +30,14 @@ Rendering::Rendering(pthread_mutex_t *mutex,pthread_cond_t *signal, AVFormatCont
     /* -- Open driver -- */
     device = ao_open_live(default_driver, &ao_format, NULL /* no options */);
     if (device == NULL) {
-    fprintf(stderr, "Error opening device.\n");
-    //return 1;
+        fprintf(stderr, "Error opening device.\n");
     }
 
     m_mutex=mutex;
     m_signal=signal;
     m_endofdecoding=endofdecoding;
     m_buffer_decode_process=Buffer_decode_process;
+    m_processing_options=processing_options;
 }
 
 Rendering::~Rendering(){
@@ -47,10 +47,6 @@ Rendering::~Rendering(){
 
 void *Rendering::play_thread(void *x_void_ptr)
 {
-    //static init_status;
-    int read_available=0;
-    int num_fail=0;
-    int processing_options=0;
     static int output_size=2048;
     Processing* processor=new Processing(output_size);
     const int buffer_size=AVCODEC_MAX_AUDIO_FRAME_SIZE+ FF_INPUT_BUFFER_PADDING_SIZE;
@@ -68,16 +64,12 @@ void *Rendering::play_thread(void *x_void_ptr)
             if(*m_endofdecoding)
                 break;
             m_buffer_decode_process->Read(samples,output_size);
-            processor->process(&samples,output_size, processing_options);
+            processor->process(&samples,output_size, m_processing_options);
             ao_play(device,(char*)samples, output_size);
         pthread_mutex_unlock(m_mutex);
     }
 
     free(samples);
-
-    /* the function must return something - NULL will do */
-    //return NULL;
-
 }
 
 void Rendering::InternalThreadEntry(){

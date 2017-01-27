@@ -39,8 +39,7 @@ int main (int argc, char **argv)
     int EndOfDecoding=0;
 
     DemuxDecode *decoder=new DemuxDecode(src_filename,&m_mutex,&m_signal,Buffer_decode_process,&EndOfDecoding);
-    Rendering *renderer=new Rendering(&m_mutex,&m_signal,decoder->GetFormatCtx(),decoder->GetAVCtx(),Buffer_decode_process,&EndOfDecoding);
-
+    Rendering *renderer=new Rendering(&m_mutex,&m_signal,decoder->GetFormatCtx(),decoder->GetAVCtx(),Buffer_decode_process,&EndOfDecoding,processing_options);
 
     decoder->StartInternalThread();
     renderer->StartInternalThread();

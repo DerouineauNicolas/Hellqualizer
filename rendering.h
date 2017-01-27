@@ -20,7 +20,7 @@ class Rendering:public MyThreadClass
 {
 public:
     Rendering(pthread_mutex_t *m_mutex,pthread_cond_t *m_signal, AVFormatContext *fmt_ctx,AVCodecContext *audio_dec_ctx,
-                              RingBuffer *Buffer_decode_process,int *endofdecoding
+                              RingBuffer *Buffer_decode_process,int *endofdecoding,int processing_options
                               );
     ~Rendering();
     //void decode_packet(int *got_frame, int *bytes_read,int cached);
@@ -38,5 +38,6 @@ private:
     int default_driver;
     const int buffer_size=AVCODEC_MAX_AUDIO_FRAME_SIZE+ FF_INPUT_BUFFER_PADDING_SIZE;
     RingBuffer *m_buffer_decode_process;
+    int m_processing_options;
 };
 
