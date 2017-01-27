@@ -34,6 +34,7 @@ int main (int argc, char **argv)
 
     pthread_mutex_t m_mutex=PTHREAD_MUTEX_INITIALIZER;
     pthread_cond_t m_signal;
+    pthread_cond_init (&m_signal,NULL);
     RingBuffer* Buffer_decode_process= new RingBuffer(44100*2);
     int EndOfDecoding=0;
 
@@ -48,14 +49,4 @@ int main (int argc, char **argv)
 
     delete decoder;
     delete renderer;
-
-
-//end:
-//    avcodec_free_context(&video_dec_ctx);
-//    avcodec_free_context(&audio_dec_ctx);
-//    avformat_close_input(&fmt_ctx);
-//    av_frame_free(&frame);
-//    av_free(video_dst_data[0]);
-
-//    return ret < 0;
 }

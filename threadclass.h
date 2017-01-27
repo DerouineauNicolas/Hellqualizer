@@ -5,8 +5,8 @@
 class MyThreadClass
 {
 public:
-   //MyThreadClass()=0 {/* empty */}
-   //virtual ~MyThreadClass() {/* empty */}
+   MyThreadClass() {/* empty */}
+   virtual ~MyThreadClass() {/* empty */}
 
    /** Returns true if the thread was successfully started, false if there was an error starting the thread */
    bool StartInternalThread()

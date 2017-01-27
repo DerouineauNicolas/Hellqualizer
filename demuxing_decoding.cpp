@@ -170,7 +170,7 @@ void DemuxDecode::decode_packet(int *got_frame, int *bytes_read,int cached)
         pthread_mutex_lock(m_mutex);
         m_buffer->Write(samples, 2*audio_dec_ctx->channels*frame->nb_samples);
         pthread_mutex_unlock(m_mutex);
-        //pthread_cond_signal(m_signal);
+        pthread_cond_signal(m_signal);
         }
     }
     }

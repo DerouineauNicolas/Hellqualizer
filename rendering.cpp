@@ -60,19 +60,16 @@ void *Rendering::play_thread(void *x_void_ptr)
 
     while(1){
         pthread_mutex_lock(m_mutex);
-        //    while(m_buffer_decode_process->GetReadAvail()<output_size){
-        //        if(*m_endofdecoding)
-        //        break;
-        //        //pthread_cond_wait(m_signal, m_mutex);
-        //    }
-        //    if(*m_endofdecoding)
-        //        break;
-        read_available=m_buffer_decode_process->GetReadAvail();
-        if(read_available>output_size){
+            while(m_buffer_decode_process->GetReadAvail()<output_size){
+                if(*m_endofdecoding)
+                break;
+                pthread_cond_wait(m_signal, m_mutex);
+            }
+            if(*m_endofdecoding)
+                break;
             m_buffer_decode_process->Read(samples,output_size);
             processor->process(&samples,output_size, processing_options);
             ao_play(device,(char*)samples, output_size);
-        }
         pthread_mutex_unlock(m_mutex);
     }
 
