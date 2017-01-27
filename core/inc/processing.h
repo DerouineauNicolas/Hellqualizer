@@ -13,6 +13,16 @@
 // buffer to hold all of the input samples
 #define BUFFER_LEN      (MAX_FLT_LEN - 1 + MAX_INPUT_LEN)
 
+class FIR_FLOAT_1Ch
+{
+public:
+    FIR_FLOAT_1Ch();
+    ~FIR_FLOAT_1Ch();
+    void firFloat( double *coeffs, double *input, double *output, int length, int filterLength );
+private:
+    double insamp[BUFFER_LEN];
+};
+
 class Processing
 {
 public:
@@ -28,6 +38,8 @@ private:
     double *f_left_ch_out;
     double *f_right_ch_in;
     double *f_left_ch_in;
+    FIR_FLOAT_1Ch *right_FIR;
+    FIR_FLOAT_1Ch *left_FIR;
 };
 
 #endif

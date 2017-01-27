@@ -6,20 +6,26 @@
 
 
 // array to hold input samples
-int16_t insamp[ BUFFER_LEN ];
-double insamp2[ BUFFER_LEN ];
+static int16_t insamp[ BUFFER_LEN ];
+
 
 // FIR init
-void firFloatInit( void )
-{
-    memset( insamp2, 0, sizeof( insamp ) );
-}
-
-// FIR init
-void firFixedInit( void )
+FIR_FLOAT_1Ch::FIR_FLOAT_1Ch()
 {
     memset( insamp, 0, sizeof( insamp ) );
 }
+
+// FIR init
+FIR_FLOAT_1Ch::~FIR_FLOAT_1Ch()
+{
+    free(insamp);
+}
+
+//// FIR init
+//void firFixedInit( void )
+//{
+//    memset( insamp, 0, sizeof( insamp ) );
+//}
 
 Processing::Processing(int size){
     right_ch_in=(uint16_t*)malloc((size/2)*sizeof(uint16_t));
@@ -30,8 +36,8 @@ Processing::Processing(int size){
     f_left_ch_out=(double*)malloc((size/2)*sizeof(double));
     f_right_ch_in=(double*)malloc((size/2)*sizeof(double));
     f_left_ch_in=(double*)malloc((size/2)*sizeof(double));
-    firFixedInit();
-    firFloatInit();
+    right_FIR=new FIR_FLOAT_1Ch();
+    left_FIR=new FIR_FLOAT_1Ch();
 }
 
 Processing::~Processing(){
@@ -43,8 +49,8 @@ Processing::~Processing(){
     free(f_left_ch_out);
     free(f_right_ch_in);
     free(f_left_ch_in);
-    free(insamp);
-    free(insamp2);
+    delete right_FIR;
+    delete left_FIR;
 }
 
 // the FIR filter function
@@ -114,7 +120,7 @@ double coeffs_lp_0_5000[ FILTER_LEN ] =
 };
 
 // the FIR filter function
-void firFloat( double *coeffs, double *input, double *output,
+void FIR_FLOAT_1Ch::firFloat( double *coeffs, double *input, double *output,
                int length, int filterLength )
 {
     double acc;     // accumulator for MACs
@@ -124,14 +130,14 @@ void firFloat( double *coeffs, double *input, double *output,
     int k;
 
     // put the new samples at the high end of the buffer
-    memcpy( &insamp2[filterLength - 1], input,
+    memcpy( &insamp[filterLength - 1], input,
             length * sizeof(double) );
 
     // apply the filter to each input sample
     for ( n = 0; n < length; n++ ) {
         // calculate output n
         coeffp = coeffs;
-        inputp = &insamp2[filterLength - 1 + n];
+        inputp = &insamp[filterLength - 1 + n];
         acc = 0;
         for ( k = 0; k < filterLength; k++ ) {
             acc += (*coeffp++) * (*inputp--);
@@ -140,7 +146,7 @@ void firFloat( double *coeffs, double *input, double *output,
         //if(output>1.0)
     }
     // shift input samples back in time for next time
-    memmove( &insamp2[0], &insamp2[length],
+    memmove( &insamp[0], &insamp[length],
             (filterLength - 1) * sizeof(double) );
 
 }
@@ -186,24 +192,24 @@ void Processing::process(uint8_t **samples_in, int size, int process){
             }
         }
 
-        memset(left_ch_in,0, (size/4)*sizeof(uint16_t));
+        //memset(left_ch_in,0, (size/4)*sizeof(uint16_t));
 
-//        intToFloat( (int16_t*)left_ch_in, f_left_ch_in, (size/4) );
-//        if(process==2)
-//            firFloat( coeffs_bp_5000_10000, f_left_ch_in, f_left_ch_out, (size/4),
-//                      FILTER_LEN );
-//        else
-//            firFloat( coeffs_lp_0_5000, f_left_ch_in, f_left_ch_out, (size/4),
-//                      FILTER_LEN );
+        intToFloat( (int16_t*)left_ch_in, f_left_ch_in, (size/4) );
+        if(process==2)
+            left_FIR->firFloat( coeffs_bp_5000_10000, f_left_ch_in, f_left_ch_out, (size/4),
+                      FILTER_LEN );
+        else
+            left_FIR->firFloat( coeffs_lp_0_5000, f_left_ch_in, f_left_ch_out, (size/4),
+                      FILTER_LEN );
 
-//        floatToInt( f_left_ch_out, left_ch_out, (size/4) );
+        floatToInt( f_left_ch_out, left_ch_out, (size/4) );
 
         intToFloat( (int16_t*)right_ch_in, f_right_ch_in, (size/4) );
         if(process==2)
-            firFloat( coeffs_bp_5000_10000, f_right_ch_in, f_right_ch_out, (size/4),
+            right_FIR->firFloat( coeffs_bp_5000_10000, f_right_ch_in, f_right_ch_out, (size/4),
                       FILTER_LEN );
         else
-            firFloat( coeffs_lp_0_5000, f_right_ch_in, f_right_ch_out, (size/4),
+            right_FIR->firFloat(coeffs_lp_0_5000, f_right_ch_in, f_right_ch_out, (size/4),
                       FILTER_LEN );
 
         floatToInt( f_right_ch_out, right_ch_out, (size/4) );
