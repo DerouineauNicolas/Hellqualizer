@@ -1,10 +1,10 @@
 Intro
-_________
+-------------------
 
 This program is decoding, filtering and playing encoded audio streams in real time
 
 Compilation
-___________
+-------------------
 
 To compile it, you need cmake , ffmpeg-dev (>=V3.0.0) and libao-dev installed in /usr/local/
 
@@ -16,7 +16,7 @@ First, clone the project in $PROJECT_DIR, then:
 	make
 
 Execution
-___________
+-------------------
  
 	./Decode_Audio2 ~/musique/some_music.mp4
 This will decode and play the bitstream
