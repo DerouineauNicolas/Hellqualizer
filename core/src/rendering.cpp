@@ -69,6 +69,8 @@ void *Rendering::play_thread(void *x_void_ptr)
         pthread_mutex_unlock(m_mutex);
     }
 
+    delete processor;
+
     free(samples);
 }
 

@@ -43,6 +43,8 @@ Processing::~Processing(){
     free(f_left_ch_out);
     free(f_right_ch_in);
     free(f_left_ch_in);
+    free(insamp);
+    free(insamp2);
 }
 
 // the FIR filter function
