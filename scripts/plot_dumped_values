@@ -1,0 +1,7 @@
+clear;
+clc;
+
+
+A=fscanfMat("../build/log")
+plot(A)
+
