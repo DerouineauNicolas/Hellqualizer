@@ -16,6 +16,7 @@ int log_level=0;
 int main (int argc, char **argv)
 {
     processing_options options;
+    memset(&options,0,sizeof(processing_options));
 
     if ( (argc <2)) {
         fprintf(stderr, "Wrong Usage \n");
