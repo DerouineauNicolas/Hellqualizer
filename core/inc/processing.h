@@ -3,12 +3,17 @@
 
 #include <fir_float.h>
 
+typedef struct processing_options{
+    double GAIN[4];
+    int do_process;
+}processing_options;
+
 class Processing
 {
 public:
     Processing( int sample_size);
     ~Processing();
-    void process(uint8_t **samples_in, int size , int options);
+    void process(uint8_t **samples_in, int size, processing_options options);
 private:
     uint16_t *right_ch_in;
     uint16_t *left_ch_in;

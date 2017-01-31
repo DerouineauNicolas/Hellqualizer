@@ -1,25 +1,22 @@
-#include <ao/ao.h>
 #include <math.h>
-#include <limits.h>
 #include <stdint.h>
 #include <ring_buffer.h>
-#include <limits>
 #include <pthread.h>
-#include <time.h>
 #include <unistd.h>
-//#include <processing.h>
+#include <processing.h>
 #include <demuxing_decoding.h>
 #include <rendering.h>
-
-
+#include <string.h>
 
 int log_level=0;
-int processing_options=0;
+
 
 #define AVCODEC_MAX_AUDIO_FRAME_SIZE 192000
 
 int main (int argc, char **argv)
 {
+    processing_options options;
+
     if ( (argc <2)) {
         fprintf(stderr, "Wrong Usage \n");
         exit(1);
@@ -29,7 +26,14 @@ int main (int argc, char **argv)
     if(!strcmp(argv[2],"-v"))
         log_level= atoi(argv[2]);
     else if(!strcmp(argv[2],"-f"))
-        processing_options= atoi(argv[3]);
+         options.do_process=1;
+         if (strchr(argv[3], ':')){
+             sscanf(argv[3], "%lf:%lf:%lf:%lf", &options.GAIN[0], &options.GAIN[1], &options.GAIN[2], &options.GAIN[3]);
+         }else
+         {
+             printf("Incorrectly formated filtering options \n");
+             exit(-1);
+         }
     }
 
     pthread_mutex_t m_mutex=PTHREAD_MUTEX_INITIALIZER;
@@ -40,7 +44,7 @@ int main (int argc, char **argv)
 
     DemuxDecode *decoder=new DemuxDecode(src_filename,&m_mutex,&m_signal,Buffer_decode_process,&EndOfDecoding);
     Rendering *renderer=new Rendering(&m_mutex,&m_signal,decoder->GetFormatCtx(),
-                                      decoder->GetAVCtx(),Buffer_decode_process,&EndOfDecoding,processing_options);
+                                      decoder->GetAVCtx(),Buffer_decode_process,&EndOfDecoding,options);
 
     decoder->StartInternalThread();
     renderer->StartInternalThread();

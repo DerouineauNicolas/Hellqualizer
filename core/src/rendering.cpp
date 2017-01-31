@@ -3,7 +3,7 @@
 /*############################LIBABO############*/
 
 Rendering::Rendering(pthread_mutex_t *mutex,pthread_cond_t *signal, AVFormatContext *fmt_ctx,AVCodecContext *audio_dec_ctx,
-                          RingBuffer *Buffer_decode_process, int *endofdecoding, int processing_options
+                          RingBuffer *Buffer_decode_process, int *endofdecoding, processing_options options
                      ){
 
     //LIBAO INIT
@@ -37,7 +37,7 @@ Rendering::Rendering(pthread_mutex_t *mutex,pthread_cond_t *signal, AVFormatCont
     m_signal=signal;
     m_endofdecoding=endofdecoding;
     m_buffer_decode_process=Buffer_decode_process;
-    m_processing_options=processing_options;
+    m_processing_options=options;
 }
 
 Rendering::~Rendering(){
