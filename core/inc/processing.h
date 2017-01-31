@@ -4,7 +4,7 @@
 #include <fir_float.h>
 
 typedef struct processing_options{
-    double GAIN[4];
+    double GAIN[5];
     int do_process;
 }processing_options;
 
@@ -26,10 +26,12 @@ private:
     double *f_left_ch_out_2;
     double *f_left_ch_out_3;
     double *f_left_ch_out_4;
+    double *f_left_ch_out_5;
     double *f_right_ch_out_1;
     double *f_right_ch_out_2;
     double *f_right_ch_out_3;
     double *f_right_ch_out_4;
+    double *f_right_ch_out_5;
     /***/
     double *f_right_ch_in;
     double *f_left_ch_in;

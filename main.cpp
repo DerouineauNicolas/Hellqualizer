@@ -28,7 +28,7 @@ int main (int argc, char **argv)
     else if(!strcmp(argv[2],"-f"))
          options.do_process=1;
          if (strchr(argv[3], ':')){
-             sscanf(argv[3], "%lf:%lf:%lf:%lf", &options.GAIN[0], &options.GAIN[1], &options.GAIN[2], &options.GAIN[3]);
+             sscanf(argv[3], "%lf:%lf:%lf:%lf:%lf", &options.GAIN[0], &options.GAIN[1], &options.GAIN[2], &options.GAIN[3],&options.GAIN[4]);
          }else
          {
              printf("Incorrectly formated filtering options \n");
