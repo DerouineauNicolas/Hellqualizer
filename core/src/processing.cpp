@@ -42,19 +42,11 @@ Processing::Processing(int size){
     left_ch_out=(int16_t*)malloc((size/2)*sizeof(int16_t));
 
     f_left_ch_in=(double*)malloc((size/2)*sizeof(double));
-    f_left_ch_out_1=(double*)malloc((size/2)*sizeof(double));
-    f_left_ch_out_2=(double*)malloc((size/2)*sizeof(double));
-    f_left_ch_out_3=(double*)malloc((size/2)*sizeof(double));
-    f_left_ch_out_4=(double*)malloc((size/2)*sizeof(double));
-    f_left_ch_out_5=(double*)malloc((size/2)*sizeof(double));
+    f_left_ch_out_tmp=(double*)malloc(NUM_EQ_BANDS*(size/2)*sizeof(double));
     f_left_ch_out=(double*)malloc((size/2)*sizeof(double));
 
     f_right_ch_in=(double*)malloc((size/2)*sizeof(double));
-    f_right_ch_out_1=(double*)malloc((size/2)*sizeof(double));
-    f_right_ch_out_2=(double*)malloc((size/2)*sizeof(double));
-    f_right_ch_out_3=(double*)malloc((size/2)*sizeof(double));
-    f_right_ch_out_4=(double*)malloc((size/2)*sizeof(double));
-    f_right_ch_out_5=(double*)malloc((size/2)*sizeof(double));
+    f_right_ch_out_tmp=(double*)malloc(NUM_EQ_BANDS*(size/2)*sizeof(double));
     f_right_ch_out=(double*)malloc((size/2)*sizeof(double));
 
 
@@ -69,19 +61,11 @@ Processing::~Processing(){
     free(left_ch_out);
 
     free(f_left_ch_in);
-    free(f_left_ch_out_1);
-    free(f_left_ch_out_2);
-    free(f_left_ch_out_3);
-    free(f_left_ch_out_4);
-    free(f_left_ch_out_5);
+    free(f_left_ch_out_tmp);
     free(f_left_ch_out);
 
     free(f_right_ch_in);
-    free(f_right_ch_out_1);
-    free(f_right_ch_out_2);
-    free(f_right_ch_out_3);
-    free(f_right_ch_out_4);
-    free(f_right_ch_out_5);
+    free(f_right_ch_out_tmp);
     free(f_right_ch_out);
     delete right_FIR;
     delete left_FIR;
@@ -136,13 +120,15 @@ void floatToInt( double *input, int16_t *output, int length )
     }
 }
 
-void mix_samples(double *ch1, double *ch2, double *ch3, double *ch4, double *ch5, double *out, int num_samples)
+void mix_samples(double *ch, double *out, int num_samples)
 {
-    int s;
+    int s,c;
     double tmp;
     for (s=0;s<num_samples;s++){
-        tmp=(ch1[s]+ch2[s]+ch3[s]+ch4[s]+ch5[s]/5);
-        out[s]=tmp;
+        tmp=0.0;
+        for(c=0;c<NUM_EQ_BANDS;c++)
+           tmp+=ch[s+c*num_samples];
+        out[s]=tmp/NUM_EQ_BANDS;
     }
 
 }
@@ -168,28 +154,28 @@ void Processing::process(uint8_t **samples_in, int size, processing_options opti
 
         intToFloat( (int16_t*)left_ch_in, f_left_ch_in, (size/4) );
         inp = left_FIR->firStoreNewSamples( f_left_ch_in, (size/4) );
-        left_FIR->firFloat(coeffs_lp_0_2000, inp, f_left_ch_out_1, (size/4), FILTER_LEN, options.GAIN[0]);
-        left_FIR->firFloat(coeffs_bp_2000_4000, inp, f_left_ch_out_2, (size/4), FILTER_LEN, options.GAIN[1]);
-        left_FIR->firFloat(coeffs_bp_4000_6000, inp, f_left_ch_out_3, (size/4), FILTER_LEN, options.GAIN[2]);
-        left_FIR->firFloat(coeffs_bp_6000_10000, inp, f_left_ch_out_4, (size/4), FILTER_LEN, options.GAIN[3]);
-        left_FIR->firFloat(coeffs_bp_10000_22000, inp, f_left_ch_out_5, (size/4), FILTER_LEN, options.GAIN[4]);
+        left_FIR->firFloat(coeffs_lp_0_2000, inp, f_left_ch_out_tmp, (size/4), FILTER_LEN, options.GAIN[0]);
+        left_FIR->firFloat(coeffs_bp_2000_4000, inp, f_left_ch_out_tmp+(size/4), (size/4), FILTER_LEN, options.GAIN[1]);
+        left_FIR->firFloat(coeffs_bp_4000_6000, inp, f_left_ch_out_tmp+2*(size/4), (size/4), FILTER_LEN, options.GAIN[2]);
+        left_FIR->firFloat(coeffs_bp_6000_10000, inp, f_left_ch_out_tmp+3*(size/4), (size/4), FILTER_LEN, options.GAIN[3]);
+        left_FIR->firFloat(coeffs_bp_10000_22000, inp, f_left_ch_out_tmp+4*(size/4), (size/4), FILTER_LEN, options.GAIN[4]);
         left_FIR->firMoveProcSamples((size/4));
 
-        mix_samples(f_left_ch_out_1,f_left_ch_out_2,f_left_ch_out_3,f_left_ch_out_4,f_left_ch_out_5,f_left_ch_out,(size/4));
+        mix_samples(f_left_ch_out_tmp,f_left_ch_out,(size/4));
 
         floatToInt( f_left_ch_out, left_ch_out, (size/4) );
 
         /*####################################*/
         intToFloat( (int16_t*)right_ch_in, f_right_ch_in, (size/4) );
         inp = right_FIR->firStoreNewSamples( f_right_ch_in, (size/4) );
-        right_FIR->firFloat(coeffs_lp_0_2000, inp, f_right_ch_out_1, (size/4), FILTER_LEN, options.GAIN[0]);
-        right_FIR->firFloat(coeffs_bp_2000_4000, inp, f_right_ch_out_2, (size/4), FILTER_LEN, options.GAIN[1]);
-        right_FIR->firFloat(coeffs_bp_4000_6000, inp, f_right_ch_out_3, (size/4), FILTER_LEN, options.GAIN[2]);
-        right_FIR->firFloat(coeffs_bp_6000_10000, inp, f_right_ch_out_4, (size/4), FILTER_LEN, options.GAIN[3]);
-        right_FIR->firFloat(coeffs_bp_10000_22000, inp, f_right_ch_out_5, (size/4), FILTER_LEN, options.GAIN[4]);
+        right_FIR->firFloat(coeffs_lp_0_2000, inp, f_right_ch_out_tmp, (size/4), FILTER_LEN, options.GAIN[0]);
+        right_FIR->firFloat(coeffs_bp_2000_4000, inp, f_right_ch_out_tmp+(size/4), (size/4), FILTER_LEN, options.GAIN[1]);
+        right_FIR->firFloat(coeffs_bp_4000_6000, inp, f_right_ch_out_tmp+2*(size/4), (size/4), FILTER_LEN, options.GAIN[2]);
+        right_FIR->firFloat(coeffs_bp_6000_10000, inp, f_right_ch_out_tmp+3*(size/4), (size/4), FILTER_LEN, options.GAIN[3]);
+        right_FIR->firFloat(coeffs_bp_10000_22000, inp, f_right_ch_out_tmp+4*(size/4), (size/4), FILTER_LEN, options.GAIN[4]);
         right_FIR->firMoveProcSamples((size/4));
 
-        mix_samples(f_right_ch_out_1,f_right_ch_out_2,f_right_ch_out_3,f_right_ch_out_4,f_right_ch_out_5,f_right_ch_out,(size/4));
+        mix_samples(f_right_ch_out_tmp,f_right_ch_out,(size/4));
 
         floatToInt( f_right_ch_out, right_ch_out, (size/4) );
 

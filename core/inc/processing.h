@@ -3,6 +3,8 @@
 
 #include <fir_float.h>
 
+#define NUM_EQ_BANDS 5
+
 typedef struct processing_options{
     double GAIN[5];
     int do_process;
@@ -22,16 +24,8 @@ private:
     double *f_right_ch_out;
     double *f_left_ch_out;
     /*These buffers are used as intermediate filtering stage*/
-    double *f_left_ch_out_1;
-    double *f_left_ch_out_2;
-    double *f_left_ch_out_3;
-    double *f_left_ch_out_4;
-    double *f_left_ch_out_5;
-    double *f_right_ch_out_1;
-    double *f_right_ch_out_2;
-    double *f_right_ch_out_3;
-    double *f_right_ch_out_4;
-    double *f_right_ch_out_5;
+    double *f_left_ch_out_tmp;
+    double *f_right_ch_out_tmp;
     /***/
     double *f_right_ch_in;
     double *f_left_ch_in;
