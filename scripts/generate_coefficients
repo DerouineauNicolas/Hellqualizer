@@ -1,16 +1,13 @@
 clear;
 clc;
-clf();
-scf(0);
+xdel(winsid());
 
-nf=63;
 Fs=44100;
-bedge=[0,2000/Fs;2100/Fs,15000/Fs;15100/Fs,22000/Fs];
-des=[1 0 0];
-wate=[1 1 1];
-[hn]=eqfir(nf,bedge,des,wate);
+N_tap=12;
+
+
+hn=ffilt("lp",N_tap,2000/Fs,2000/Fs)
 hn=hn;
-//hn=round(hn);
 [hm,fr]=frmag(hn,256);
 plot(fr,hm)
 
@@ -20,14 +17,8 @@ write('coefficients_0_2000',strcat(string(hn),','))
 
 scf(1);
 
-nf=63;
-Fs=44100;
-bedge=[0,2000/Fs;2100/Fs,4000/Fs;4100/Fs,22000/Fs];
-des=[0 1 0];
-wate=[1 1 1];
-[hn]=eqfir(nf,bedge,des,wate);
+hn=ffilt("bp",N_tap+12,2000/Fs,4000/Fs)
 hn=hn;
-//hn=round(hn);
 [hm,fr]=frmag(hn,256);
 plot(fr,hm)
 
@@ -37,14 +28,9 @@ write('coefficients_2000_4000',strcat(string(hn),','))
 
 scf(2);
 
-nf=63;
-Fs=44100;
-bedge=[0,4000/Fs;4100/Fs,6000/Fs;6100/Fs,22000/Fs];
-des=[0 1 0];
-wate=[1 1 1];
-[hn]=eqfir(nf,bedge,des,wate);
+
+hn=ffilt("bp",N_tap+7,4000/Fs,6000/Fs)
 hn=hn;
-//hn=round(hn);
 [hm,fr]=frmag(hn,256);
 plot(fr,hm)
 
@@ -54,14 +40,9 @@ if getos() == 'Windows' then unix('del coefficients_4000_6000');
 else unix('rm -f coefficients_4000_6000'); end
 write('coefficients_4000_6000',strcat(string(hn),','))
 
-nf=63;
-Fs=44100;
-bedge=[0,6000/Fs;6100/Fs,10000/Fs;10100/Fs,22000/Fs];
-des=[0 1 0];
-wate=[1 1 1];
-[hn]=eqfir(nf,bedge,des,wate);
+
+hn=ffilt("bp",N_tap+7,6000/Fs,10000/Fs)
 hn=hn;
-//hn=round(hn);
 [hm,fr]=frmag(hn,256);
 plot(fr,hm)
 
@@ -71,14 +52,8 @@ write('coefficients_6000_10000',strcat(string(hn),','))
 
 scf(4);
 
-nf=63;
-Fs=44100;
-bedge=[0,6000/Fs;6100/Fs,10000/Fs;10100/Fs,22000/Fs];
-des=[0 0 1];
-wate=[1 1 1];
-[hn]=eqfir(nf,bedge,des,wate);
+hn=ffilt("hp",N_tap+7,10000/Fs,10000/Fs)
 hn=hn;
-//hn=round(hn);
 [hm,fr]=frmag(hn,256);
 plot(fr,hm)
 

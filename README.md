@@ -2,9 +2,8 @@ Intro
 -------------------
 
 This program is decoding, filtering and playing encoded audio streams in real time.
-The current EQ is based on 5 FIR filters (63 taps). Inband individual gain can be selected.
-This implementation differs from the tradional 2nd order biquad filtering. The complexity and
-the audio quality of this eq needs to be profiled.
+The current EQ is based on 5 FIR filters. Inband individual gain can be selected.
+This implementation differs from the tradional 2nd order biquad filtering. 
 The current bands are 0:2000:4000:6000:10000:22000
 
 
@@ -26,16 +25,17 @@ Execution
 	./Decode_Audio2 ~/musique/some_music.mp4
 This will decode and play the bitstream
 
-	./Decode_Audio2 ~/musique/some_music.mp4 -f 0.1:0.1:0.1:0.1:0.1
+	./Decode_Audio2 ~/musique/some_music.mp4 -f G0:G1:G2:G3:G4
 
 where -f G0:G1:G2:G3:G4 with
 
-G0: Gain for 0-2000 Hz
-G1: Gain for 2000-4000 Hz
-G2: Gain for 4000-6000 Hz
-G3: Gain for 6000-10000 Hz
-G4: Gain for 10000-22000 Hz
+G0: Gain for 0-2000 Hz - Should be between 0 and 1.0
+G1: Gain for 2000-4000 Hz - Should be between 0 and 1.0
+G2: Gain for 4000-6000 Hz - Should be between 0 and 1.0
+G3: Gain for 6000-10000 Hz - Should be between 0 and 1.0
+G4: Gain for 10000-22000 Hz - Should be between 0 and 1.0
 
-The filter coefficients are generated with scilab using the equiribble constrain.
-Only floating point is used at the moment, but fixed point is already implemented.
+
+The filter coefficients are generated with scilab. The script to generate filter is available in the
+script directory. Only floating point is used at the moment, but fixed point is already implemented.
 
