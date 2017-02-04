@@ -1,4 +1,5 @@
-#define __STDC_CONSTANT_MACROS
+#ifndef __PROCESSING_H
+#define __PROCESSING_H
 
 extern "C" {
 #include <libavutil/imgutils.h>
@@ -38,4 +39,6 @@ private:
     RingBuffer *m_buffer_decode_process;
     processing_options m_processing_options;
 };
+
+#endif
 

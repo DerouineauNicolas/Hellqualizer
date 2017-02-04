@@ -7,7 +7,7 @@ INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/core/inc)
 INCLUDE_DIRECTORIES(/usr/local/include/)
 link_directories(/usr/local/lib/)
 
-set (CMAKE_CXX_FLAGS "-Wall")
+set (CMAKE_CXX_FLAGS "-Wall -D__STDC_CONSTANT_MACROS ")
 
 add_executable(Decode_Audio2
     main.cpp

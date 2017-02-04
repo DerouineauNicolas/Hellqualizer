@@ -1,4 +1,5 @@
-#define __STDC_CONSTANT_MACROS
+#ifndef __DEMUX_DECOD_H
+#define __DEMUX_DECOD_H
 
 extern "C" {
 #include <libavutil/imgutils.h>
@@ -52,4 +53,6 @@ private:
          AVCodecContext **dec_ctx, AVFormatContext *fmt_ctx, enum AVMediaType type);
 
 };
+
+#endif
 
