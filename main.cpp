@@ -8,14 +8,10 @@
 #include <rendering.h>
 #include <string.h>
 
-int log_level=0;
-
-
-#define AVCODEC_MAX_AUDIO_FRAME_SIZE 192000
-
 int main (int argc, char **argv)
 {
     processing_options options;
+    int log_level=0;
     memset(&options,0,sizeof(processing_options));
 
     if ( (argc <2)) {
@@ -23,19 +19,29 @@ int main (int argc, char **argv)
         exit(1);
     }
     const char *src_filename = argv[1];
-    if(argc>3){
-    if(!strcmp(argv[2],"-v"))
-        log_level= atoi(argv[2]);
-    else if(!strcmp(argv[2],"-f"))
-         options.do_process=1;
-         if (strchr(argv[3], ':')){
-             sscanf(argv[3], "%lf:%lf:%lf:%lf:%lf", &options.GAIN[0], &options.GAIN[1], &options.GAIN[2], &options.GAIN[3],&options.GAIN[4]);
-         }else
-         {
-             printf("Incorrectly formated filtering options \n");
-             exit(-1);
-         }
+
+    for(int i=0;i<argc;i++){
+        if(!strcmp(argv[i],"-v"))
+            log_level= 1;
+        else if(!strcmp(argv[i],"-f")){
+            options.do_process=1;
+            if(argv[i+1]){
+                if (strchr(argv[i+1], ':')){
+                    sscanf(argv[i+1], "%lf:%lf:%lf:%lf:%lf", &options.GAIN[0], &options.GAIN[1], &options.GAIN[2], &options.GAIN[3],&options.GAIN[4]);
+                }else
+                {
+                    printf("Incorrectly formated filtering options \n");
+                    exit(-1);
+                }
+            }
+            else
+            {
+                printf("Incorrectly formated filtering options \n");
+                exit(-1);
+            }
+        }
     }
+
 
     pthread_mutex_t m_mutex=PTHREAD_MUTEX_INITIALIZER;
     pthread_cond_t m_signal;

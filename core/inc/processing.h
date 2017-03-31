@@ -8,6 +8,7 @@
 typedef struct processing_options{
     double GAIN[5];
     int do_process;
+    int verbosity;
 }processing_options;
 
 class Processing
