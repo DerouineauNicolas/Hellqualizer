@@ -31,9 +31,13 @@ This will decode and play the bitstream
 	./Decode_Audio2 ~/musique/some_music.mp4 -f G0:G1:G2:G3:G4
 
 G0: Gain for 0-2000 Hz (Should be between 0 and 1.0)
+
 G1: Gain for 2000-4000 Hz (Should be between 0 and 1.0)
+
 G2: Gain for 4000-6000 Hz (Should be between 0 and 1.0)
+
 G3: Gain for 6000-10000 Hz (Should be between 0 and 1.0)
+
 G4: Gain for 10000-22000 Hz (Should be between 0 and 1.0)
 
 
