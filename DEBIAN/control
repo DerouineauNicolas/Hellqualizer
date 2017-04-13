@@ -8,4 +8,5 @@ Homepage: https://github.com/DerouineauNicolas/Hellqualizer
 Standards-Version: 0.1.0
 Version: 0.1.0
 Build-Depends: libavcodec-dev, libavformat-dev, libswscale-dev, libao-dev
+Depends: libao4
 Description: A home EQ for test purposes
