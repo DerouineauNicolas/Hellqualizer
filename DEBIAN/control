@@ -1,0 +1,11 @@
+Package: Hellqualizer
+Section: base
+Priority: optional
+Architecture: all
+Maintainer: Nicolas DEROUINEAU <nicodero72@gmail.com>
+Bugs: mailto:nicodero72@gmail.com
+Homepage: https://github.com/DerouineauNicolas/Hellqualizer
+Standards-Version: 0.1.0
+Version: 0.1.0
+Build-Depends: libavcodec-dev, libavformat-dev, libswscale-dev, libao-dev
+Description: A home EQ for test purposes

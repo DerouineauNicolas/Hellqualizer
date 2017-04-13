@@ -1,4 +1,5 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
+set (CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR}/DEBIAN/usr/bin)
 PROJECT(Example)
 
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/core/inc)
@@ -9,7 +10,8 @@ link_directories(/usr/local/lib/)
 
 set (CMAKE_CXX_FLAGS "-Wall -D__STDC_CONSTANT_MACROS ")
 
-add_executable(Decode_Audio2
+
+add_executable(Hellqualizer
     main.cpp
     ${PROJECT_SOURCE_DIR}/core/src/rendering.cpp
     ${PROJECT_SOURCE_DIR}/core/src/ring_buffer.cpp
@@ -18,7 +20,7 @@ add_executable(Decode_Audio2
 )
 
 
-target_link_libraries(Decode_Audio2
+target_link_libraries(Hellqualizer
 		      avutil
 		      avformat
 		      avcodec
@@ -28,6 +30,8 @@ target_link_libraries(Decode_Audio2
 		      m
 		      pthread
 )
+
+install (TARGETS Hellqualizer DESTINATION ${PROJECT_SOURCE_DIR}/usr/bin/)
 
    
 
