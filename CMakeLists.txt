@@ -17,6 +17,7 @@ add_executable(Hellqualizer
     ${PROJECT_SOURCE_DIR}/core/src/ring_buffer.cpp
     ${PROJECT_SOURCE_DIR}/core/src/processing.cpp
     ${PROJECT_SOURCE_DIR}/core/src/demuxing_decoding.cpp
+    ${PROJECT_SOURCE_DIR}/core/src/controler.cpp
 )
 
 

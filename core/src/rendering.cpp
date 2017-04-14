@@ -3,7 +3,7 @@
 /*############################LIBABO############*/
 
 Rendering::Rendering(pthread_mutex_t *mutex,pthread_cond_t *signal, AVFormatContext *fmt_ctx,AVCodecContext *audio_dec_ctx,
-                          RingBuffer *Buffer_decode_process, int *endofdecoding, processing_options options
+                          RingBuffer *Buffer_decode_process, int *endofdecoding, processing_options *options
                      ){
 
     //LIBAO INIT
@@ -64,7 +64,7 @@ void *Rendering::play_thread(void *x_void_ptr)
             if(*m_endofdecoding)
                 break;
             m_buffer_decode_process->Read(samples,output_size);
-            processor->process(&samples,output_size, m_processing_options);
+            processor->process(&samples,output_size, *m_processing_options);
             ao_play(device,(char*)samples, output_size);
         pthread_mutex_unlock(m_mutex);
     }

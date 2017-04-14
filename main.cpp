@@ -7,12 +7,13 @@
 #include <demuxing_decoding.h>
 #include <rendering.h>
 #include <string.h>
+#include <controler.h>
 
 int main (int argc, char **argv)
 {
-    processing_options options;
+    processing_options proc_options;
     int log_level=0;
-    memset(&options,0,sizeof(processing_options));
+    memset(&proc_options,0,sizeof(processing_options));
 
     if ( (argc <2)) {
         fprintf(stderr, "Wrong Usage \n");
@@ -24,10 +25,10 @@ int main (int argc, char **argv)
         if(!strcmp(argv[i],"-v"))
             log_level= 1;
         else if(!strcmp(argv[i],"-f")){
-            options.do_process=1;
+            proc_options.do_process=1;
             if(argv[i+1]){
                 if (strchr(argv[i+1], ':')){
-                    sscanf(argv[i+1], "%lf:%lf:%lf:%lf:%lf", &options.GAIN[0], &options.GAIN[1], &options.GAIN[2], &options.GAIN[3],&options.GAIN[4]);
+                    sscanf(argv[i+1], "%lf:%lf:%lf:%lf:%lf", &proc_options.GAIN[0], &proc_options.GAIN[1], &proc_options.GAIN[2], &proc_options.GAIN[3],&proc_options.GAIN[4]);
                 }else
                 {
                     printf("Incorrectly formated filtering options \n");
@@ -51,7 +52,8 @@ int main (int argc, char **argv)
 
     DemuxDecode *decoder=new DemuxDecode(src_filename,&m_mutex,&m_signal,Buffer_decode_process,&EndOfDecoding);
     Rendering *renderer=new Rendering(&m_mutex,&m_signal,decoder->GetFormatCtx(),
-                                      decoder->GetAVCtx(),Buffer_decode_process,&EndOfDecoding,options);
+                                      decoder->GetAVCtx(),Buffer_decode_process,&EndOfDecoding,&proc_options);
+    Controler *control=new Controler(src_filename,EndOfDecoding, &proc_options);
 
     decoder->StartInternalThread();
     renderer->StartInternalThread();

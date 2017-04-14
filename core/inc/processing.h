@@ -2,6 +2,7 @@
 #define _PROCESSING
 
 #include <fir_float.h>
+#include <stdint.h>
 
 #define NUM_EQ_BANDS 5
 
