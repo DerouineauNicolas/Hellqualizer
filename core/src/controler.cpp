@@ -68,16 +68,16 @@ void *Controler::control_thread(void *x_void_ptr)
             printf("G[3]=%f \n", m_processing_options->GAIN[3]);
             break;
         case 'f':
-            m_processing_options->GAIN[4]-=0.1;
-            printf("G[3]=%f \n", m_processing_options->GAIN[4]);
+            m_processing_options->GAIN[3]-=0.1;
+            printf("G[3]=%f \n", m_processing_options->GAIN[3]);
             break;
         case 't':
             m_processing_options->GAIN[4]+=0.1;
             printf("G[4]=%f \n", m_processing_options->GAIN[4]);
             break;
         case 'g':
-            m_processing_options->GAIN[0]-=0.1;
-            printf("G[4]=%f \n", m_processing_options->GAIN[0]);
+            m_processing_options->GAIN[4]-=0.1;
+            printf("G[4]=%f \n", m_processing_options->GAIN[4]);
             break;
         default:
             break;
