@@ -13,13 +13,19 @@ int main (int argc, char **argv)
 {
     processing_options proc_options;
     int log_level=0;
-    memset(&proc_options,0,sizeof(processing_options));
+    //memset(&proc_options,0,sizeof(processing_options));
+    proc_options.do_process=1;
+    proc_options.GAIN[0]=0.5;
+    proc_options.GAIN[1]=0.5;
+    proc_options.GAIN[2]=0.5;
+    proc_options.GAIN[3]=0.5;
+    proc_options.GAIN[4]=0.5;
 
     if ( (argc <2)) {
         fprintf(stderr, "Wrong Usage \n");
         exit(1);
     }
-    const char *src_filename = argv[1];
+    char *src_filename = argv[1];
 
     for(int i=0;i<argc;i++){
         if(!strcmp(argv[i],"-v"))
@@ -53,12 +59,15 @@ int main (int argc, char **argv)
     DemuxDecode *decoder=new DemuxDecode(src_filename,&m_mutex,&m_signal,Buffer_decode_process,&EndOfDecoding);
     Rendering *renderer=new Rendering(&m_mutex,&m_signal,decoder->GetFormatCtx(),
                                       decoder->GetAVCtx(),Buffer_decode_process,&EndOfDecoding,&proc_options);
-    Controler *control=new Controler(src_filename,EndOfDecoding, &proc_options);
+    Controler *control=new Controler(src_filename,&EndOfDecoding, &proc_options);
 
     decoder->StartInternalThread();
     renderer->StartInternalThread();
+    control->StartInternalThread();
+
     decoder->WaitForInternalThreadToExit();
     renderer->WaitForInternalThreadToExit();
+    control->WaitForInternalThreadToExit();
 
 
     delete decoder;

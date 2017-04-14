@@ -28,7 +28,7 @@ DemuxDecode::DemuxDecode(const char* src_file_name, pthread_mutex_t *mutex, pthr
     }
 
     /* dump input information to stderr */
-    av_dump_format(fmt_ctx, 0, m_src_filename, 0);
+    //av_dump_format(fmt_ctx, 0, m_src_filename, 0);
 
     if (!audio_stream) {
     fprintf(stderr, "Could not find audio  stream in the input, aborting\n");
