@@ -4,7 +4,35 @@
 #include <termios.h>
 #include <unistd.h>
 
+
+#include <GLFW/glfw3.h>
+
+#define NK_INCLUDE_FIXED_TYPES
+#define NK_INCLUDE_STANDARD_IO
+#define NK_INCLUDE_STANDARD_VARARGS
+#define NK_INCLUDE_DEFAULT_ALLOCATOR
+#define NK_INCLUDE_VERTEX_BUFFER_OUTPUT
+#define NK_INCLUDE_FONT_BAKING
+#define NK_INCLUDE_DEFAULT_FONT
+#define NK_IMPLEMENTATION
+#define NK_GLFW_GL2_IMPLEMENTATION
+#include "nuklear.h"
+#include "nuklear_glfw_gl2.h"
+
+#define WINDOW_WIDTH 1200
+#define WINDOW_HEIGHT 800
+
+#define UNUSED(a) (void)a
+#define MIN(a,b) ((a) < (b) ? (a) : (b))
+#define MAX(a,b) ((a) < (b) ? (b) : (a))
+#define LEN(a) (sizeof(a)/sizeof(a)[0])
+
+
+
 using namespace std;
+
+static void error_callback(int e, const char *d)
+{printf("Error %d: %s\n", e, d);}
 
 
 GUI::GUI(char* src_file_name, int *endofdecoding, processing_options *processing_opt)
@@ -16,62 +44,108 @@ GUI::GUI(char* src_file_name, int *endofdecoding, processing_options *processing
 
 void *GUI::gui_thread(void *x_void_ptr)
 {
-    // Initialise GLFW
-    if( !glfwInit() )
+    /* Platform */
+    static GLFWwindow *win;
+    int width = 0, height = 0;
+    struct nk_context *ctx;
+    struct nk_color background;
+
+    /* GLFW */
+    glfwSetErrorCallback(error_callback);
+    if (!glfwInit()) {
+        fprintf(stdout, "[GFLW] failed to init!\n");
+        exit(1);
+    }
+    win = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Demo", NULL, NULL);
+    glfwMakeContextCurrent(win);
+    glfwGetWindowSize(win, &width, &height);
+
+    /* GUI */
+    ctx = nk_glfw3_init(win, NK_GLFW3_INSTALL_CALLBACKS);
+    /* Load Fonts: if none of these are loaded a default font will be used  */
+    /* Load Cursor: if you uncomment cursor loading please hide the cursor */
+    {struct nk_font_atlas *atlas;
+    nk_glfw3_font_stash_begin(&atlas);
+    /*struct nk_font *droid = nk_font_atlas_add_from_file(atlas, "../../../extra_font/DroidSans.ttf", 14, 0);*/
+    /*struct nk_font *roboto = nk_font_atlas_add_from_file(atlas, "../../../extra_font/Roboto-Regular.ttf", 14, 0);*/
+    /*struct nk_font *future = nk_font_atlas_add_from_file(atlas, "../../../extra_font/kenvector_future_thin.ttf", 13, 0);*/
+    /*struct nk_font *clean = nk_font_atlas_add_from_file(atlas, "../../../extra_font/ProggyClean.ttf", 12, 0);*/
+    /*struct nk_font *tiny = nk_font_atlas_add_from_file(atlas, "../../../extra_font/ProggyTiny.ttf", 10, 0);*/
+    /*struct nk_font *cousine = nk_font_atlas_add_from_file(atlas, "../../../extra_font/Cousine-Regular.ttf", 13, 0);*/
+    nk_glfw3_font_stash_end();
+    /*nk_style_load_all_cursors(ctx, atlas->cursors);*/
+    /*nk_style_set_font(ctx, &droid->handle);*/}
+
+    /* style.c */
+    /*set_style(ctx, THEME_WHITE);*/
+    /*set_style(ctx, THEME_RED);*/
+    /*set_style(ctx, THEME_BLUE);*/
+    /*set_style(ctx, THEME_DARK);*/
+
+    background = nk_rgb(28,48,62);
+    while (!glfwWindowShouldClose(win))
     {
-        fprintf( stderr, "Failed to initialize GLFW\n" );
-        getchar();
-        //return -1;
-    }
-
-    glfwWindowHint(GLFW_SAMPLES, 4);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
-
-
-    // Open a window and create its OpenGL context
-    m_window = glfwCreateWindow( 1024, 768, "Hellqualizer", NULL, NULL);
-    if( m_window == NULL ){
-        fprintf( stderr, "Failed to open GLFW window.\n" );
-        getchar();
-        glfwTerminate();
-        //return -1;
-    }
-    glfwMakeContextCurrent(m_window);
-
-    // Initialize GLEW
-    if (glewInit() != GLEW_OK) {
-        fprintf(stderr, "Failed to initialize GLEW\n");
-        getchar();
-        glfwTerminate();
-        //return -1;
-    }
-
-    // Ensure we can capture the escape key being pressed below
-    glfwSetInputMode(m_window, GLFW_STICKY_KEYS, GL_TRUE);
-
-    // Dark blue background
-    glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
-
-    do{
-        // Clear the screen. It's not mentioned before Tutorial 02, but it can cause flickering, so it's there nonetheless.
-        glClear( GL_COLOR_BUFFER_BIT );
-
-        // Draw nothing, see you in tutorial 2 !
-
-
-        // Swap buffers
-        glfwSwapBuffers(m_window);
+        /* Input */
         glfwPollEvents();
+        nk_glfw3_new_frame();
 
-    } // Check if the ESC key was pressed or the window was closed
-    while( glfwGetKey(m_window, GLFW_KEY_ESCAPE ) != GLFW_PRESS &&
-           glfwWindowShouldClose(m_window) == 0 );
+        /* GUI */
+        if (nk_begin(ctx, "Hellqualizer", nk_rect(50, 50, 230, 250),
+            NK_WINDOW_BORDER|NK_WINDOW_MOVABLE|NK_WINDOW_SCALABLE|
+            NK_WINDOW_MINIMIZABLE|NK_WINDOW_TITLE))
+        {
+            enum {EASY, HARD};
+            static int op = EASY;
+            static int property = 20;
+            nk_layout_row_static(ctx, 30, 80, 1);
+            if (nk_button_label(ctx, "button"))
+                fprintf(stdout, "button pressed\n");
 
-    // Close OpenGL window and terminate GLFW
+            nk_layout_row_dynamic(ctx, 30, 2);
+            if (nk_option_label(ctx, "easy", op == EASY)) op = EASY;
+            if (nk_option_label(ctx, "hard", op == HARD)) op = HARD;
+
+            nk_layout_row_dynamic(ctx, 25, 1);
+            nk_property_int(ctx, "Compression:", 0, &property, 100, 10, 1);
+
+            nk_layout_row_dynamic(ctx, 20, 1);
+            nk_label(ctx, "background:", NK_TEXT_LEFT);
+            nk_layout_row_dynamic(ctx, 25, 1);
+            if (nk_combo_begin_color(ctx, background, nk_vec2(nk_widget_width(ctx),400))) {
+                nk_layout_row_dynamic(ctx, 120, 1);
+                background = nk_color_picker(ctx, background, NK_RGBA);
+                nk_layout_row_dynamic(ctx, 25, 1);
+                background.r = (nk_byte)nk_propertyi(ctx, "#R:", 0, background.r, 255, 1,1);
+                background.g = (nk_byte)nk_propertyi(ctx, "#G:", 0, background.g, 255, 1,1);
+                background.b = (nk_byte)nk_propertyi(ctx, "#B:", 0, background.b, 255, 1,1);
+                background.a = (nk_byte)nk_propertyi(ctx, "#A:", 0, background.a, 255, 1,1);
+                nk_combo_end(ctx);
+            }
+        }
+        nk_end(ctx);
+
+        /* -------------- EXAMPLES ---------------- */
+        /*calculator(ctx);*/
+        /*overview(ctx);*/
+        /*node_editor(ctx);*/
+        /* ----------------------------------------- */
+
+        /* Draw */
+        {float bg[4];
+        nk_color_fv(bg, background);
+        glfwGetWindowSize(win, &width, &height);
+        glViewport(0, 0, width, height);
+        glClear(GL_COLOR_BUFFER_BIT);
+        glClearColor(bg[0], bg[1], bg[2], bg[3]);
+        /* IMPORTANT: `nk_glfw_render` modifies some global OpenGL state
+         * with blending, scissor, face culling and depth test and defaults everything
+         * back into a default state. Make sure to either save and restore or
+         * reset your own state after drawing rendering the UI. */
+        nk_glfw3_render(NK_ANTI_ALIASING_ON);
+        glfwSwapBuffers(win);}
+    }
+    nk_glfw3_shutdown();
     glfwTerminate();
-
-    return 0;
 
 }
 

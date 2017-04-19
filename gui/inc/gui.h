@@ -5,8 +5,21 @@
 #include <threadclass.h>
 #include <processing.h>
 
-#include <GL/glew.h>
-#include <GLFW/glfw3.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
+#include <stdarg.h>
+#include <string.h>
+#include <math.h>
+#include <assert.h>
+#include <math.h>
+#include <time.h>
+#include <limits.h>
+
+
+//#define STB_IMAGE_IMPLEMENTATION
+//#include "stb_image.h"
+
 
 // Include GLM
 //#include <glm/glm.hpp>
@@ -23,7 +36,7 @@ private:
     processing_options *m_processing_options;
     int *m_end_of_decoding;
     char* m_src_file_name;
-    GLFWwindow* m_window;
+    //GLFWwindow* m_window;
 };
 
 #endif
