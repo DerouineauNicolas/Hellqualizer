@@ -23,7 +23,7 @@ private:
     processing_options *m_processing_options;
     int *m_end_of_decoding;
     char* m_src_file_name;
-    GLFWwindow* window;
+    GLFWwindow* m_window;
 };
 
 #endif
