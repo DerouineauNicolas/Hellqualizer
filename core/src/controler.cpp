@@ -7,11 +7,10 @@
 using namespace std;
 
 
-Controler::Controler(char* src_file_name, int *endofdecoding, processing_options *processing_opt)
+Controler::Controler(char* src_file_name, int *endofdecoding, HQ_Context *ctx)
 {
    m_src_file_name=src_file_name;
-   m_end_of_decoding=endofdecoding;
-   m_processing_options=processing_opt;
+   m_ctx=ctx;
 }
 
 void *Controler::control_thread(void *x_void_ptr)
@@ -34,50 +33,50 @@ void *Controler::control_thread(void *x_void_ptr)
     tcsetattr( STDIN_FILENO, TCSANOW, &newt);
 
     while(1){
-        if(*m_end_of_decoding)
+        if(m_ctx->state==END_OF_DECODING)
             break;
         char event=getchar();
 
         switch(event){
         case 'a':
-            m_processing_options->GAIN[0]+=0.1;
-            printf("G[0]=%f \n", m_processing_options->GAIN[0]);
+            m_ctx->proc_opt.GAIN[0]+=0.1;
+            printf("G[0]=%f \n", m_ctx->proc_opt.GAIN[0]);
             break;
         case 'q':
-            m_processing_options->GAIN[0]-=0.1;
-            printf("G[0]=%f \n", m_processing_options->GAIN[0]);
+            m_ctx->proc_opt.GAIN[0]-=0.1;
+            printf("G[0]=%f \n", m_ctx->proc_opt.GAIN[0]);
             break;
         case 'z':
-            m_processing_options->GAIN[1]+=0.1;
-            printf("G[1]=%f \n", m_processing_options->GAIN[1]);
+            m_ctx->proc_opt.GAIN[1]+=0.1;
+            printf("G[1]=%f \n", m_ctx->proc_opt.GAIN[1]);
             break;
         case 's':
-            m_processing_options->GAIN[1]-=0.1;
-            printf("G[1]=%f \n", m_processing_options->GAIN[1]);
+            m_ctx->proc_opt.GAIN[1]-=0.1;
+            printf("G[1]=%f \n", m_ctx->proc_opt.GAIN[1]);
             break;
         case 'e':
-            m_processing_options->GAIN[2]+=0.1;
-            printf("G[2]=%f \n", m_processing_options->GAIN[2]);
+            m_ctx->proc_opt.GAIN[2]+=0.1;
+            printf("G[2]=%f \n", m_ctx->proc_opt.GAIN[2]);
             break;
         case 'd':
-            m_processing_options->GAIN[2]-=0.1;
-            printf("G[2]=%f \n", m_processing_options->GAIN[2]);
+            m_ctx->proc_opt.GAIN[2]-=0.1;
+            printf("G[2]=%f \n", m_ctx->proc_opt.GAIN[2]);
             break;
         case 'r':
-            m_processing_options->GAIN[3]+=0.1;
-            printf("G[3]=%f \n", m_processing_options->GAIN[3]);
+            m_ctx->proc_opt.GAIN[3]+=0.1;
+            printf("G[3]=%f \n", m_ctx->proc_opt.GAIN[3]);
             break;
         case 'f':
-            m_processing_options->GAIN[3]-=0.1;
-            printf("G[3]=%f \n", m_processing_options->GAIN[3]);
+            m_ctx->proc_opt.GAIN[3]-=0.1;
+            printf("G[3]=%f \n", m_ctx->proc_opt.GAIN[3]);
             break;
         case 't':
-            m_processing_options->GAIN[4]+=0.1;
-            printf("G[4]=%f \n", m_processing_options->GAIN[4]);
+            m_ctx->proc_opt.GAIN[4]+=0.1;
+            printf("G[4]=%f \n", m_ctx->proc_opt.GAIN[4]);
             break;
         case 'g':
-            m_processing_options->GAIN[4]-=0.1;
-            printf("G[4]=%f \n", m_processing_options->GAIN[4]);
+            m_ctx->proc_opt.GAIN[4]-=0.1;
+            printf("G[4]=%f \n", m_ctx->proc_opt.GAIN[4]);
             break;
         default:
             break;

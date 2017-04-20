@@ -8,14 +8,13 @@
 class Controler: public MyThreadClass
 {
 public:
-    Controler(char* src_file_name, int *endofdecoding, processing_options *processing_opt);
+    Controler(char* src_file_name, int *endofdecoding, HQ_Context *ctx);
     Controler();
     ~Controler();
     void *control_thread(void *x_void_ptr);
 private:
     void InternalThreadEntry();
-    processing_options *m_processing_options;
-    int *m_end_of_decoding;
+    HQ_Context *m_ctx;
     char* m_src_file_name;
 };
 

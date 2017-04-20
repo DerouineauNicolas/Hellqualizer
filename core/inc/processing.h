@@ -1,16 +1,11 @@
-#ifndef _PROCESSING
-#define _PROCESSING
-
+#ifndef _PROCESSING_H
+#define _PROCESSING_H
+#include <Hellqualizer.h>
 #include <fir_float.h>
 #include <stdint.h>
 
-#define NUM_EQ_BANDS 5
 
-typedef struct processing_options{
-    double GAIN[5];
-    int do_process;
-    int verbosity;
-}processing_options;
+#define NUM_EQ_BANDS 5
 
 class Processing
 {

@@ -11,6 +11,7 @@ extern "C" {
 #include <pthread.h>
 #include <ring_buffer.h>
 #include <threadclass.h>
+#include <Hellqualizer.h>
 
 #define AVCODEC_MAX_AUDIO_FRAME_SIZE 192000
 
@@ -18,7 +19,7 @@ extern "C" {
 class DemuxDecode: public MyThreadClass
 {
 public:
-    DemuxDecode(const char* src_file_name, pthread_mutex_t *mutex, pthread_cond_t *signal, RingBuffer *Buffer_decode_process, int *endofdecoding);
+    DemuxDecode(const char* src_file_name, pthread_mutex_t *mutex, pthread_cond_t *signal, RingBuffer *Buffer_decode_process, HQ_Context *ctx);
     DemuxDecode();
     ~DemuxDecode();
     void decode_packet(int *got_frame, int *bytes_read,int cached);
@@ -48,7 +49,7 @@ private:
      pthread_mutex_t *m_mutex;
      pthread_cond_t *m_signal;
      RingBuffer *m_buffer;
-     int *m_endofdecoding;
+     HQ_Context *m_ctx;
      int open_codec_context(int *stream_idx,
          AVCodecContext **dec_ctx, AVFormatContext *fmt_ctx, enum AVMediaType type);
 

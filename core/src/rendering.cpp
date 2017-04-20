@@ -1,9 +1,19 @@
 #include <rendering.h>
+#include <ao/ao.h>
+
+static pthread_mutex_t *m_mutex;
+static pthread_cond_t *m_signal;
+static AVFormatContext *fmt_ctx;// = NULL;
+static AVCodecContext *audio_dec_ctx;
+static ao_device *device;
+static ao_sample_format ao_format;
+static int default_driver;
+static const int buffer_size=AVCODEC_MAX_AUDIO_FRAME_SIZE+ FF_INPUT_BUFFER_PADDING_SIZE;
 
 /*############################LIBABO############*/
 
 Rendering::Rendering(pthread_mutex_t *mutex,pthread_cond_t *signal, AVFormatContext *fmt_ctx,AVCodecContext *audio_dec_ctx,
-                          RingBuffer *Buffer_decode_process, int *endofdecoding, processing_options *options
+                          RingBuffer *Buffer_decode_process, HQ_Context *ctx
                      ){
 
     //LIBAO INIT
@@ -35,9 +45,8 @@ Rendering::Rendering(pthread_mutex_t *mutex,pthread_cond_t *signal, AVFormatCont
 
     m_mutex=mutex;
     m_signal=signal;
-    m_endofdecoding=endofdecoding;
+    m_ctx=ctx;
     m_buffer_decode_process=Buffer_decode_process;
-    m_processing_options=options;
 }
 
 Rendering::~Rendering(){
@@ -57,14 +66,14 @@ void *Rendering::play_thread(void *x_void_ptr)
     while(1){
         pthread_mutex_lock(m_mutex);
             while(m_buffer_decode_process->GetReadAvail()<output_size){
-                if(*m_endofdecoding)
+                if(m_ctx->state==END_OF_DECODING)
                 break;
                 pthread_cond_wait(m_signal, m_mutex);
             }
-            if(*m_endofdecoding)
+            if(m_ctx->state==END_OF_DECODING)
                 break;
             m_buffer_decode_process->Read(samples,output_size);
-            processor->process(&samples,output_size, *m_processing_options);
+            processor->process(&samples,output_size, m_ctx->proc_opt);
             ao_play(device,(char*)samples, output_size);
         pthread_mutex_unlock(m_mutex);
     }

@@ -3,7 +3,7 @@
 static const int buffer_size=AVCODEC_MAX_AUDIO_FRAME_SIZE+ FF_INPUT_BUFFER_PADDING_SIZE;
 
 
-DemuxDecode::DemuxDecode(const char* src_file_name, pthread_mutex_t *mutex, pthread_cond_t *signal, RingBuffer *Buffer_decode_process, int *endofdecoding)
+DemuxDecode::DemuxDecode(const char* src_file_name, pthread_mutex_t *mutex, pthread_cond_t *signal, RingBuffer *Buffer_decode_process, HQ_Context *ctx)
 {
     int ret = 0; //got_frame;
     m_src_filename=src_file_name;
@@ -51,7 +51,7 @@ DemuxDecode::DemuxDecode(const char* src_file_name, pthread_mutex_t *mutex, pthr
     m_mutex=mutex;
     m_signal=signal;
     m_buffer=Buffer_decode_process;
-    m_endofdecoding=endofdecoding;
+    m_ctx=ctx;
 
 }
 
@@ -206,7 +206,7 @@ void *DemuxDecode::decode_thread(void *x_void_ptr)
         else
         {
         pthread_mutex_lock(m_mutex);
-        (*m_endofdecoding)=1;
+        m_ctx->state=END_OF_DECODING;
         pthread_mutex_unlock(m_mutex);
         break;
         }
