@@ -1,10 +1,6 @@
 #include <rendering.h>
 #include <ao/ao.h>
 
-static pthread_mutex_t *m_mutex;
-static pthread_cond_t *m_signal;
-static AVFormatContext *fmt_ctx;// = NULL;
-static AVCodecContext *audio_dec_ctx;
 static ao_device *device;
 static ao_sample_format ao_format;
 static int default_driver;
@@ -64,10 +60,11 @@ void *Rendering::play_thread(void *x_void_ptr)
     samples=(uint8_t*)malloc(buffer_size*sizeof(uint8_t));
 
     while(1){
-        pthread_mutex_lock(m_mutex);
+        if(m_ctx->state==PLAY){
+            pthread_mutex_lock(m_mutex);
             while(m_buffer_decode_process->GetReadAvail()<output_size){
                 if(m_ctx->state==END_OF_DECODING)
-                break;
+                    break;
                 pthread_cond_wait(m_signal, m_mutex);
             }
             if(m_ctx->state==END_OF_DECODING)
@@ -75,7 +72,8 @@ void *Rendering::play_thread(void *x_void_ptr)
             m_buffer_decode_process->Read(samples,output_size);
             processor->process(&samples,output_size, m_ctx->proc_opt);
             ao_play(device,(char*)samples, output_size);
-        pthread_mutex_unlock(m_mutex);
+            pthread_mutex_unlock(m_mutex);
+        }
     }
 
     delete processor;

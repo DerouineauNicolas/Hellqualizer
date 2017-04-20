@@ -17,7 +17,6 @@
 
 int main (int argc, char **argv)
 {
-
     HQ_Context Ctx;
 
     Ctx.proc_opt.do_process=1;
@@ -26,7 +25,7 @@ int main (int argc, char **argv)
     Ctx.proc_opt.GAIN[2]=0.5;
     Ctx.proc_opt.GAIN[3]=0.5;
     Ctx.proc_opt.GAIN[4]=0.5;
-    Ctx.state=PAUSE;
+    Ctx.state=PLAY;
 
     if ( (argc <2)) {
         fprintf(stderr, "Wrong Usage \n");
@@ -38,7 +37,6 @@ int main (int argc, char **argv)
     pthread_cond_t m_signal;
     pthread_cond_init (&m_signal,NULL);
     RingBuffer* Buffer_decode_process= new RingBuffer(44100*2);
-    int EndOfDecoding=0;
 
     DemuxDecode *decoder=new DemuxDecode(src_filename,&m_mutex,&m_signal,Buffer_decode_process,&Ctx);
     Rendering *renderer=new Rendering(&m_mutex,&m_signal,decoder->GetFormatCtx(),
@@ -48,7 +46,7 @@ int main (int argc, char **argv)
 #ifdef HQ_GUI
     GUI *gui_control=new GUI(src_filename,&EndOfDecoding, &proc_options);
 #else
-    Controler *control=new Controler(src_filename,&EndOfDecoding, &Ctx);
+    Controler *control=new Controler(src_filename, &Ctx);
 #endif
 
     decoder->StartInternalThread();

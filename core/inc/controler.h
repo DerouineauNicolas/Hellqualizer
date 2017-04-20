@@ -8,7 +8,7 @@
 class Controler: public MyThreadClass
 {
 public:
-    Controler(char* src_file_name, int *endofdecoding, HQ_Context *ctx);
+    Controler(char* src_file_name, HQ_Context *ctx);
     Controler();
     ~Controler();
     void *control_thread(void *x_void_ptr);

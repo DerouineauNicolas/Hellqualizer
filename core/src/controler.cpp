@@ -7,7 +7,7 @@
 using namespace std;
 
 
-Controler::Controler(char* src_file_name, int *endofdecoding, HQ_Context *ctx)
+Controler::Controler(char* src_file_name, HQ_Context *ctx)
 {
    m_src_file_name=src_file_name;
    m_ctx=ctx;
@@ -77,6 +77,15 @@ void *Controler::control_thread(void *x_void_ptr)
         case 'g':
             m_ctx->proc_opt.GAIN[4]-=0.1;
             printf("G[4]=%f \n", m_ctx->proc_opt.GAIN[4]);
+            break;
+        case ' ':
+            if(m_ctx->state==PLAY){
+                printf("Pause \n");
+                m_ctx->state=PAUSE;
+            }else{
+                printf("Play \n");
+                m_ctx->state=PLAY;
+            }
             break;
         default:
             break;

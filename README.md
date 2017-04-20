@@ -20,6 +20,8 @@ r - f : Increase/Decrease gain between 6000 - 10000 Hz
 
 t - g : Increase/Decrease gain between 10000 - 22000 Hz
 
+space: Play/Pause 
+
 Package
 -------------------
 Debian packages are available [here](http://the.ndero.ovh/build/Hellqualizer/)
