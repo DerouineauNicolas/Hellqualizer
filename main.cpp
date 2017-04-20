@@ -7,8 +7,12 @@
 #include <demuxing_decoding.h>
 #include <rendering.h>
 #include <string.h>
-#include <controler.h>
+
+#ifdef HQ_GUI
 #include <gui.h>
+#else
+#include <controler.h>
+#endif
 
 int main (int argc, char **argv)
 {
@@ -60,23 +64,40 @@ int main (int argc, char **argv)
     DemuxDecode *decoder=new DemuxDecode(src_filename,&m_mutex,&m_signal,Buffer_decode_process,&EndOfDecoding);
     Rendering *renderer=new Rendering(&m_mutex,&m_signal,decoder->GetFormatCtx(),
                                       decoder->GetAVCtx(),Buffer_decode_process,&EndOfDecoding,&proc_options);
-    //Controler *control=new Controler(src_filename,&EndOfDecoding, &proc_options);
+
+
+#ifdef HQ_GUI
     GUI *gui_control=new GUI(src_filename,&EndOfDecoding, &proc_options);
+#else
+    Controler *control=new Controler(src_filename,&EndOfDecoding, &proc_options);
+#endif
 
     decoder->StartInternalThread();
     renderer->StartInternalThread();
-    //control->StartInternalThread();
+
+#ifdef HQ_GUI
     gui_control->StartInternalThread();
+#else
+    control->StartInternalThread();
+#endif
 
     decoder->WaitForInternalThreadToExit();
     renderer->WaitForInternalThreadToExit();
+
+#ifdef HQ_GUI
     gui_control->WaitForInternalThreadToExit();
-    //control->WaitForInternalThreadToExit();
+#else
+    control->WaitForInternalThreadToExit();
+#endif
 
 
     delete decoder;
     delete renderer;
-    //delete control;
+#ifdef HQ_GUI
     delete gui_control;
+#else
+    delete control;
+#endif
+
     delete Buffer_decode_process;
 }

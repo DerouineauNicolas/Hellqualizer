@@ -56,7 +56,7 @@ void *GUI::gui_thread(void *x_void_ptr)
         fprintf(stdout, "[GFLW] failed to init!\n");
         exit(1);
     }
-    win = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Demo", NULL, NULL);
+    win = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Hellqualizer", NULL, NULL);
     glfwMakeContextCurrent(win);
     glfwGetWindowSize(win, &width, &height);
 
@@ -101,7 +101,7 @@ void *GUI::gui_thread(void *x_void_ptr)
             if (nk_button_label(ctx, "button"))
                 fprintf(stdout, "button pressed\n");
 
-            nk_layout_row_dynamic(ctx, 30, 2);
+            /*nk_layout_row_dynamic(ctx, 30, 2);
             if (nk_option_label(ctx, "easy", op == EASY)) op = EASY;
             if (nk_option_label(ctx, "hard", op == HARD)) op = HARD;
 
@@ -120,7 +120,7 @@ void *GUI::gui_thread(void *x_void_ptr)
                 background.b = (nk_byte)nk_propertyi(ctx, "#B:", 0, background.b, 255, 1,1);
                 background.a = (nk_byte)nk_propertyi(ctx, "#A:", 0, background.a, 255, 1,1);
                 nk_combo_end(ctx);
-            }
+            }*/
         }
         nk_end(ctx);
 
