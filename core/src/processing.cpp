@@ -133,11 +133,38 @@ void mix_samples(double *ch, double *out, int num_samples)
 
 }
 
-void Processing::process(uint8_t **samples_in, int size, processing_options options){
+#define GENERATE_FUNCTION(SAMPLING_RATE) void Processing::EQ_stereo_##SAMPLING_RATE(int size, processing_options options){ \
+    double *inp; \
+    intToFloat( (int16_t*)left_ch_in, f_left_ch_in, (size/4) ); \
+    inp = left_FIR->firStoreNewSamples( f_left_ch_in, (size/4) );\
+    left_FIR->firFloat(coeffs_lp_0_2000_FS_##SAMPLING_RATE, inp, f_left_ch_out_tmp, (size/4), FILTER_LEN_0_2000, options.GAIN[0]);\
+    left_FIR->firFloat(coeffs_bp_2000_4000_FS_##SAMPLING_RATE, inp, f_left_ch_out_tmp+(size/4), (size/4), FILTER_LEN_2000_4000, options.GAIN[1]);\
+    left_FIR->firFloat(coeffs_bp_4000_6000_FS_##SAMPLING_RATE, inp, f_left_ch_out_tmp+2*(size/4), (size/4), FILTER_LEN_4000_6000, options.GAIN[2]);\
+    left_FIR->firFloat(coeffs_bp_6000_10000_FS_##SAMPLING_RATE, inp, f_left_ch_out_tmp+3*(size/4), (size/4), FILTER_LEN_6000_10000, options.GAIN[3]);\
+    left_FIR->firFloat(coeffs_bp_10000_22000_FS_##SAMPLING_RATE, inp, f_left_ch_out_tmp+4*(size/4), (size/4), FILTER_LEN_10000_20000, options.GAIN[4]);\
+    left_FIR->firMoveProcSamples((size/4));\
+    mix_samples(f_left_ch_out_tmp,f_left_ch_out,(size/4));\
+    floatToInt( f_left_ch_out, left_ch_out, (size/4) );\
+    intToFloat( (int16_t*)right_ch_in, f_right_ch_in, (size/4) );\
+    inp = right_FIR->firStoreNewSamples( f_right_ch_in, (size/4) );\
+    right_FIR->firFloat(coeffs_lp_0_2000_FS_##SAMPLING_RATE, inp, f_right_ch_out_tmp, (size/4), FILTER_LEN_0_2000, options.GAIN[0]);\
+    right_FIR->firFloat(coeffs_bp_2000_4000_FS_##SAMPLING_RATE, inp, f_right_ch_out_tmp+(size/4), (size/4), FILTER_LEN_2000_4000, options.GAIN[1]);\
+    right_FIR->firFloat(coeffs_bp_4000_6000_FS_##SAMPLING_RATE, inp, f_right_ch_out_tmp+2*(size/4), (size/4), FILTER_LEN_4000_6000, options.GAIN[2]);\
+    right_FIR->firFloat(coeffs_bp_6000_10000_FS_##SAMPLING_RATE, inp, f_right_ch_out_tmp+3*(size/4), (size/4), FILTER_LEN_6000_10000, options.GAIN[3]);\
+    right_FIR->firFloat(coeffs_bp_10000_22000_FS_##SAMPLING_RATE, inp, f_right_ch_out_tmp+4*(size/4), (size/4), FILTER_LEN_10000_20000, options.GAIN[4]);\
+    right_FIR->firMoveProcSamples((size/4));\
+    mix_samples(f_right_ch_out_tmp,f_right_ch_out,(size/4));\
+    floatToInt( f_right_ch_out, right_ch_out, (size/4) );\
+}\
+
+GENERATE_FUNCTION(44100)
+GENERATE_FUNCTION(48000)
+
+void Processing::process(uint8_t **samples_in, int size, HQ_Context *ctx){
 
     uint16_t **in = (uint16_t **)samples_in;
-    //int16_t **tmp[3000];
-    double *inp;
+    processing_options options=ctx->proc_opt;
+
 
     if(options.do_process){
 
@@ -150,34 +177,14 @@ void Processing::process(uint8_t **samples_in, int size, processing_options opti
             }
         }
 
-        //memset(right_ch_in,0, (size/4)*sizeof(uint16_t));
-
-        intToFloat( (int16_t*)left_ch_in, f_left_ch_in, (size/4) );
-        inp = left_FIR->firStoreNewSamples( f_left_ch_in, (size/4) );
-        left_FIR->firFloat(coeffs_lp_0_2000, inp, f_left_ch_out_tmp, (size/4), FILTER_LEN_0_2000, options.GAIN[0]);
-        left_FIR->firFloat(coeffs_bp_2000_4000, inp, f_left_ch_out_tmp+(size/4), (size/4), FILTER_LEN_2000_4000, options.GAIN[1]);
-        left_FIR->firFloat(coeffs_bp_4000_6000, inp, f_left_ch_out_tmp+2*(size/4), (size/4), FILTER_LEN_4000_6000, options.GAIN[2]);
-        left_FIR->firFloat(coeffs_bp_6000_10000, inp, f_left_ch_out_tmp+3*(size/4), (size/4), FILTER_LEN_6000_10000, options.GAIN[3]);
-        left_FIR->firFloat(coeffs_bp_10000_22000, inp, f_left_ch_out_tmp+4*(size/4), (size/4), FILTER_LEN_10000_20000, options.GAIN[4]);
-        left_FIR->firMoveProcSamples((size/4));
-
-        mix_samples(f_left_ch_out_tmp,f_left_ch_out,(size/4));
-
-        floatToInt( f_left_ch_out, left_ch_out, (size/4) );
-
-        /*####################################*/
-        intToFloat( (int16_t*)right_ch_in, f_right_ch_in, (size/4) );
-        inp = right_FIR->firStoreNewSamples( f_right_ch_in, (size/4) );
-        right_FIR->firFloat(coeffs_lp_0_2000, inp, f_right_ch_out_tmp, (size/4), FILTER_LEN_0_2000, options.GAIN[0]);
-        right_FIR->firFloat(coeffs_bp_2000_4000, inp, f_right_ch_out_tmp+(size/4), (size/4), FILTER_LEN_2000_4000, options.GAIN[1]);
-        right_FIR->firFloat(coeffs_bp_4000_6000, inp, f_right_ch_out_tmp+2*(size/4), (size/4), FILTER_LEN_4000_6000, options.GAIN[2]);
-        right_FIR->firFloat(coeffs_bp_6000_10000, inp, f_right_ch_out_tmp+3*(size/4), (size/4), FILTER_LEN_6000_10000, options.GAIN[3]);
-        right_FIR->firFloat(coeffs_bp_10000_22000, inp, f_right_ch_out_tmp+4*(size/4), (size/4), FILTER_LEN_10000_20000, options.GAIN[4]);
-        right_FIR->firMoveProcSamples((size/4));
-
-        mix_samples(f_right_ch_out_tmp,f_right_ch_out,(size/4));
-
-        floatToInt( f_right_ch_out, right_ch_out, (size/4) );
+        if(ctx->Sampling_rate==44100)
+            EQ_stereo_44100(size,options);
+        else if(ctx->Sampling_rate==48000)
+            EQ_stereo_48000(size,options);
+        else{
+            printf("[Processing] Sampling rate is not supported \n");
+            return;
+        }
 
 
         for(int i=0;i<size/2;i++){

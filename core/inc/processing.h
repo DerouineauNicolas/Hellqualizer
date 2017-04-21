@@ -12,7 +12,7 @@ class Processing
 public:
     Processing( int sample_size);
     ~Processing();
-    void process(uint8_t **samples_in, int size, processing_options options);
+    void process(uint8_t **samples_in, int size, HQ_Context *options);
 private:
     uint16_t *right_ch_in;
     uint16_t *left_ch_in;
@@ -28,6 +28,8 @@ private:
     double *f_left_ch_in;
     FIR_FLOAT_1Ch *right_FIR;
     FIR_FLOAT_1Ch *left_FIR;
+    void EQ_stereo_44100(int size,processing_options options);
+    void EQ_stereo_48000(int size,processing_options options);
 };
 
 #endif

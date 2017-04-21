@@ -28,7 +28,7 @@ DemuxDecode::DemuxDecode(const char* src_file_name, pthread_mutex_t *mutex, pthr
     }
 
     /* dump input information to stderr */
-    //av_dump_format(fmt_ctx, 0, m_src_filename, 0);
+    av_dump_format(fmt_ctx, 0, m_src_filename, 0);
 
     if (!audio_stream) {
         fprintf(stderr, "Could not find audio  stream in the input, aborting\n");
@@ -145,6 +145,8 @@ void DemuxDecode::decode_packet(int *got_frame, int *bytes_read,int cached)
         data_size = av_samples_get_buffer_size(&plane_size, audio_dec_ctx->channels,
                                                frame->nb_samples,
                                                audio_dec_ctx->sample_fmt, 1);
+
+        m_ctx->Sampling_rate=audio_dec_ctx->sample_rate;
 
 
         /* Some audio decoders decode only part of the packet, and have to be

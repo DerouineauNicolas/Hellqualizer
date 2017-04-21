@@ -62,6 +62,7 @@ void *Rendering::play_thread(void *x_void_ptr)
     while(1){
         if(m_ctx->state==PLAY){
             pthread_mutex_lock(m_mutex);
+            //printf("RENDER: %d \n",m_buffer_decode_process->GetReadAvail());
             while(m_buffer_decode_process->GetReadAvail()<output_size){
                 if(m_ctx->state==END_OF_DECODING)
                     break;
@@ -70,7 +71,7 @@ void *Rendering::play_thread(void *x_void_ptr)
             if(m_ctx->state==END_OF_DECODING)
                 break;
             m_buffer_decode_process->Read(samples,output_size);
-            processor->process(&samples,output_size, m_ctx->proc_opt);
+            processor->process(&samples,output_size, m_ctx);
             ao_play(device,(char*)samples, output_size);
             pthread_mutex_unlock(m_mutex);
         }

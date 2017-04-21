@@ -18,9 +18,10 @@ typedef struct HQ_Context{
     Player_state state;
     processing_options proc_opt;
     int verbosity;
-    /*TBD
-    int num_channels;
+
+    int Sampling_rate;
     int channels;
+    /*TBD
     int sample_rate;*/
 }HQ_Context;
 
