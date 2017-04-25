@@ -20,18 +20,13 @@ Rendering::Rendering(pthread_mutex_t *mutex,pthread_cond_t *signal, AVFormatCont
     default_driver = ao_default_driver_id();
 
     memset(&ao_format, 0, sizeof(ao_format));
-    if(audio_dec_ctx->sample_fmt==AV_SAMPLE_FMT_FLT || audio_dec_ctx->sample_fmt==AV_SAMPLE_FMT_FLTP) {
+    //if(audio_dec_ctx->sample_fmt==AV_SAMPLE_FMT_FLT || audio_dec_ctx->sample_fmt==AV_SAMPLE_FMT_FLTP) {
     ao_format.bits = 16;
     ao_format.channels = audio_dec_ctx->channels;
     ao_format.rate = audio_dec_ctx->sample_rate;
     ao_format.byte_format = AO_FMT_NATIVE;
     ao_format.matrix=0;
-    }
-    else
-    {
-    //exit(1);
-        printf("Format not detected \n");
-    }
+    //}
 
     /* -- Open driver -- */
     device = ao_open_live(default_driver, &ao_format, NULL /* no options */);

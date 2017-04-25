@@ -169,11 +169,25 @@ void DemuxDecode::decode_packet(int *got_frame, int *bytes_read,int cached)
                         out[i*audio_dec_ctx->channels + j] = (int16_t) (sample * 32767.0f );
                     }
                 }
-                pthread_mutex_lock(m_mutex);
-                m_buffer->Write(samples, 2*audio_dec_ctx->channels*frame->nb_samples);
-                pthread_mutex_unlock(m_mutex);
-                pthread_cond_signal(m_signal);
+            } else if (audio_dec_ctx->sample_fmt==AV_SAMPLE_FMT_S16P) {
+                int i, j;
+                for (j=0; j<audio_dec_ctx->channels; j++) {
+                    int16_t* inputChannel = (int16_t*)frame->extended_data[j];
+                    for (i=0 ; i<frame->nb_samples ; i++) {
+                        float sample = inputChannel[i];
+                        out[i*audio_dec_ctx->channels + j] = (int16_t) (sample );
+                    }
+                }
+            } else
+            {
+                printf("ffmpeg audio output format not (yet) supported \n");
+                return;
             }
+
+            pthread_mutex_lock(m_mutex);
+            m_buffer->Write(samples, 2*audio_dec_ctx->channels*frame->nb_samples);
+            pthread_mutex_unlock(m_mutex);
+            pthread_cond_signal(m_signal);
         }
     }
 
