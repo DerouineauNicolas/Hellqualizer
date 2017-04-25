@@ -1,4 +1,5 @@
 #include <demuxing_decoding.h>
+#include <unistd.h>
 
 static const int buffer_size=AVCODEC_MAX_AUDIO_FRAME_SIZE+ FF_INPUT_BUFFER_PADDING_SIZE;
 
@@ -227,7 +228,8 @@ void *DemuxDecode::decode_thread(void *x_void_ptr)
                 break;
             }
         }
-        else{
+        else if(m_ctx->state==PAUSE){
+            usleep(1000000);
             //if(log_level)
             //printf("Input Buffer overflow !!! \n");
         }

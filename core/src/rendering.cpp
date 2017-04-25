@@ -1,5 +1,6 @@
 #include <rendering.h>
 #include <ao/ao.h>
+#include <unistd.h>
 
 static ao_device *device;
 static ao_sample_format ao_format;
@@ -70,6 +71,10 @@ void *Rendering::play_thread(void *x_void_ptr)
             ao_play(device,(char*)samples, output_size);
             pthread_mutex_unlock(m_mutex);
         }
+        else{
+            usleep(1000000);
+        }
+
     }
 
     delete processor;
