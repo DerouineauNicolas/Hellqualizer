@@ -3,12 +3,20 @@ set (CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR}/DEBIAN/usr/bin)
 PROJECT(Hellqualizer)
 
 set(GUI OFF)
+set(PROFILING OFF)
 
 if(GUI)
     message("Build with gui")
     find_package(OpenGL REQUIRED)
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -DHQ_GUI=1")
 endif()
+
+if(PROFILING)
+    message("Build with profiling")
+    INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/utils/)
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -DHQ_PROFILING=1")
+endif()
+
 
 
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/core/inc)

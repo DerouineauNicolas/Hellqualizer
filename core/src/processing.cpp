@@ -5,6 +5,10 @@
 #include <processing.h>
 #include <float_coeff.h>
 
+#ifdef HQ_PROFILING
+#include <profiling.h>
+#endif
+
 // FIR init
 FIR_FLOAT_1Ch::FIR_FLOAT_1Ch()
 {
@@ -165,6 +169,10 @@ void Processing::process(uint8_t **samples_in, int size, HQ_Context *ctx){
     uint16_t **in = (uint16_t **)samples_in;
     processing_options options=ctx->proc_opt;
 
+#ifdef HQ_PROFILING
+    uint64_t before,after;
+    before=rdtsc();
+#endif
 
     if(options.do_process){
 
@@ -176,6 +184,7 @@ void Processing::process(uint8_t **samples_in, int size, HQ_Context *ctx){
                 right_ch_in[i/2]=(*in)[i];
             }
         }
+
 
         if(ctx->Sampling_rate==44100)
             EQ_stereo_44100(size,options);
@@ -194,4 +203,11 @@ void Processing::process(uint8_t **samples_in, int size, HQ_Context *ctx){
                 (*in)[i]=right_ch_out[i/2];
         }
     }
+
+#ifdef HQ_PROFILING
+    after=rdtsc();
+    printf("%d \n",after-before);
+#endif
+
+
 }
