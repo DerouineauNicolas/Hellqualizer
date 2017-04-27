@@ -82,10 +82,13 @@ void *Controler::control_thread(void *x_void_ptr)
             if(m_ctx->state==PLAY){
                 printf("Pause \n");
                 m_ctx->state=PAUSE;
-            }else{
+            }else if(m_ctx->state==PAUSE){
                 printf("Play \n");
                 m_ctx->state=PLAY;
             }
+            break;
+        case 'x':
+            m_ctx->proc_opt.do_process=(m_ctx->proc_opt.do_process==1)?0:1;
             break;
         default:
             break;

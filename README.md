@@ -22,6 +22,8 @@ t - g : Increase/Decrease gain between 10000 - 22000 Hz
 
 space: Play/Pause 
 
+x : Enable/Disable EQ
+
 Package
 -------------------
 Debian packages are available [here](http://the.ndero.ovh/build/Hellqualizer/)

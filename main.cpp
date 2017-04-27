@@ -20,11 +20,11 @@ int main (int argc, char **argv)
     HQ_Context Ctx;
 
     Ctx.proc_opt.do_process=1;
-    Ctx.proc_opt.GAIN[0]=0.5;
-    Ctx.proc_opt.GAIN[1]=0.5;
-    Ctx.proc_opt.GAIN[2]=0.5;
-    Ctx.proc_opt.GAIN[3]=0.5;
-    Ctx.proc_opt.GAIN[4]=0.5;
+    Ctx.proc_opt.GAIN[0]=1.0;
+    Ctx.proc_opt.GAIN[1]=1.0;
+    Ctx.proc_opt.GAIN[2]=1.0;
+    Ctx.proc_opt.GAIN[3]=1.0;
+    Ctx.proc_opt.GAIN[4]=1.0;
     Ctx.state=PLAY;
 
     if ( (argc <2)) {
