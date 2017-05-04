@@ -3,6 +3,7 @@ set (CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR}/DEBIAN/usr/bin)
 PROJECT(Hellqualizer)
 
 set(GUI OFF)
+set(RENDER_WITH_ALSA OFF)
 set(PROFILING OFF)
 
 if(GUI)
@@ -30,11 +31,25 @@ link_directories(/usr/lib/)
 
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -D__STDC_CONSTANT_MACROS ")
 
-set(my_SOURCES     ${PROJECT_SOURCE_DIR}/core/src/rendering.cpp
+set(my_SOURCES    
     ${PROJECT_SOURCE_DIR}/core/src/ring_buffer.cpp
     ${PROJECT_SOURCE_DIR}/core/src/processing.cpp
     ${PROJECT_SOURCE_DIR}/core/src/demuxing_decoding.cpp
 )
+
+
+if(RENDER_WITH_ALSA)
+
+  set(my_SOURCES ${my_SOURCES}
+      ${PROJECT_SOURCE_DIR}/core/src/rendering_alsa.cpp)
+
+else()
+
+    set(my_SOURCES ${my_SOURCES}
+      ${PROJECT_SOURCE_DIR}/core/src/rendering_ao.cpp)
+
+endif()
+
 
 if(GUI)
 
@@ -60,7 +75,6 @@ set(dependancies
     avcodec
     swresample
     swscale
-    ao
     m
     pthread
 )
@@ -70,6 +84,19 @@ if(GUI)
 	${OPENGL_LIBRARY}
 	glfw
 	GLEW)
+endif()
+
+
+if(RENDER_WITH_ALSA)
+
+    set(dependancies ${dependancies}
+                      asound)
+
+else()
+
+    set(dependancies ${dependancies}
+                      ao)
+
 endif()
 
 
