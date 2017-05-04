@@ -9,9 +9,7 @@ static const int buffer_size=AVCODEC_MAX_AUDIO_FRAME_SIZE+ FF_INPUT_BUFFER_PADDI
 
 /*############################LIBABO############*/
 
-Rendering::Rendering(pthread_mutex_t *mutex,pthread_cond_t *signal, AVFormatContext *fmt_ctx,AVCodecContext *audio_dec_ctx,
-                          RingBuffer *Buffer_decode_process, HQ_Context *ctx
-                     ){
+Rendering::Rendering( HQ_Context *ctx){
 
     //LIBAO INIT
     ao_initialize();
@@ -21,13 +19,12 @@ Rendering::Rendering(pthread_mutex_t *mutex,pthread_cond_t *signal, AVFormatCont
     default_driver = ao_default_driver_id();
 
     memset(&ao_format, 0, sizeof(ao_format));
-    //if(audio_dec_ctx->sample_fmt==AV_SAMPLE_FMT_FLT || audio_dec_ctx->sample_fmt==AV_SAMPLE_FMT_FLTP) {
+
     ao_format.bits = 16;
-    ao_format.channels = audio_dec_ctx->channels;
-    ao_format.rate = audio_dec_ctx->sample_rate;
+    ao_format.channels = ctx->channels;
+    ao_format.rate = ctx->Sampling_rate;//audio_dec_ctx->sample_rate;
     ao_format.byte_format = AO_FMT_NATIVE;
     ao_format.matrix=0;
-    //}
 
     /* -- Open driver -- */
     device = ao_open_live(default_driver, &ao_format, NULL /* no options */);
@@ -35,10 +32,11 @@ Rendering::Rendering(pthread_mutex_t *mutex,pthread_cond_t *signal, AVFormatCont
         fprintf(stderr, "Error opening device.\n");
     }
 
-    m_mutex=mutex;
-    m_signal=signal;
+    m_mutex=&ctx->m_mutex_decode_to_process;
+    m_signal=&ctx->m_signal_decode_to_process;
+    m_buffer_decode_process=ctx->Buffer_decode_process;
     m_ctx=ctx;
-    m_buffer_decode_process=Buffer_decode_process;
+
 }
 
 Rendering::~Rendering(){

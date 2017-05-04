@@ -4,7 +4,7 @@
 static const int buffer_size=AVCODEC_MAX_AUDIO_FRAME_SIZE+ FF_INPUT_BUFFER_PADDING_SIZE;
 
 
-DemuxDecode::DemuxDecode(const char* src_file_name, pthread_mutex_t *mutex, pthread_cond_t *signal, RingBuffer *Buffer_decode_process, HQ_Context *ctx)
+DemuxDecode::DemuxDecode(const char* src_file_name, HQ_Context *ctx)
 {
     int ret = 0; //got_frame;
     m_src_filename=src_file_name;
@@ -48,11 +48,14 @@ DemuxDecode::DemuxDecode(const char* src_file_name, pthread_mutex_t *mutex, pthr
     av_init_packet(&pkt);
     pkt.data = NULL;
     pkt.size = 0;
-
-    m_mutex=mutex;
-    m_signal=signal;
-    m_buffer=Buffer_decode_process;
     m_ctx=ctx;
+    m_ctx->Sampling_rate=audio_dec_ctx->sample_rate;
+    m_ctx->channels=audio_dec_ctx->channels;
+
+    m_mutex=&ctx->m_mutex_decode_to_process;//mutex;
+    m_signal=&ctx->m_signal_decode_to_process;
+    m_buffer=ctx->Buffer_decode_process;
+
 
 }
 
@@ -147,7 +150,7 @@ void DemuxDecode::decode_packet(int *got_frame, int *bytes_read,int cached)
                                                frame->nb_samples,
                                                audio_dec_ctx->sample_fmt, 1);
 
-        m_ctx->Sampling_rate=audio_dec_ctx->sample_rate;
+
 
 
         /* Some audio decoders decode only part of the packet, and have to be

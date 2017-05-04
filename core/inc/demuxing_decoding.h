@@ -19,7 +19,7 @@ extern "C" {
 class DemuxDecode: public MyThreadClass
 {
 public:
-    DemuxDecode(const char* src_file_name, pthread_mutex_t *mutex, pthread_cond_t *signal, RingBuffer *Buffer_decode_process, HQ_Context *ctx);
+    DemuxDecode(const char* src_file_name, HQ_Context *ctx);
     DemuxDecode();
     ~DemuxDecode();
     void decode_packet(int *got_frame, int *bytes_read,int cached);

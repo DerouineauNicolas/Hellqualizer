@@ -15,17 +15,27 @@
 #include <controler.h>
 #endif
 
+static void init_Hellqualizer(HQ_Context *Ctx){
+    pthread_cond_init (&Ctx->m_signal_decode_to_process,NULL);
+    Ctx->Buffer_decode_process=new RingBuffer(44100*2);
+    Ctx->proc_opt.do_process=1;
+    Ctx->proc_opt.GAIN[0]=1.0;
+    Ctx->proc_opt.GAIN[1]=1.0;
+    Ctx->proc_opt.GAIN[2]=1.0;
+    Ctx->proc_opt.GAIN[3]=1.0;
+    Ctx->proc_opt.GAIN[4]=1.0;
+    Ctx->state=PLAY;
+}
+
+static void Destroy_Hellqualizer(HQ_Context *Ctx){
+    delete(Ctx->Buffer_decode_process);
+}
+
 int main (int argc, char **argv)
 {
     HQ_Context Ctx;
 
-    Ctx.proc_opt.do_process=1;
-    Ctx.proc_opt.GAIN[0]=1.0;
-    Ctx.proc_opt.GAIN[1]=1.0;
-    Ctx.proc_opt.GAIN[2]=1.0;
-    Ctx.proc_opt.GAIN[3]=1.0;
-    Ctx.proc_opt.GAIN[4]=1.0;
-    Ctx.state=PLAY;
+
 
     if ( (argc <2)) {
         fprintf(stderr, "Wrong Usage \n");
@@ -33,14 +43,10 @@ int main (int argc, char **argv)
     }
     char *src_filename = argv[1];
 
-    pthread_mutex_t m_mutex=PTHREAD_MUTEX_INITIALIZER;
-    pthread_cond_t m_signal;
-    pthread_cond_init (&m_signal,NULL);
-    RingBuffer* Buffer_decode_process= new RingBuffer(44100*2);
+    init_Hellqualizer(&Ctx);
 
-    DemuxDecode *decoder=new DemuxDecode(src_filename,&m_mutex,&m_signal,Buffer_decode_process,&Ctx);
-    Rendering *renderer=new Rendering(&m_mutex,&m_signal,decoder->GetFormatCtx(),
-                                      decoder->GetAVCtx(),Buffer_decode_process,&Ctx);
+    DemuxDecode *decoder=new DemuxDecode(src_filename,&Ctx);
+    Rendering *renderer=new Rendering(&Ctx);
 
 
 #ifdef HQ_GUI
@@ -76,5 +82,4 @@ int main (int argc, char **argv)
     delete control;
 #endif
 
-    delete Buffer_decode_process;
 }

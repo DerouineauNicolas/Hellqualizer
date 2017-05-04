@@ -22,7 +22,7 @@ extern "C" {
 class Rendering:public MyThreadClass
 {
 public:
-    Rendering(pthread_mutex_t *m_mutex,pthread_cond_t *m_signal, AVFormatContext *fmt_ctx,AVCodecContext *audio_dec_ctx, RingBuffer *Buffer_decode_process,HQ_Context *ctx);
+    Rendering(HQ_Context *ctx);
     ~Rendering();
     //void decode_packet(int *got_frame, int *bytes_read,int cached);
     void *play_thread(void *x_void_ptr);
