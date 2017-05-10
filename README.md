@@ -32,7 +32,8 @@ Debian packages are available [here](http://the.ndero.ovh/build/Hellqualizer/)
 Compilation
 -------------------
 
-To compile it, you need cmake , ffmpeg-dev (>=V3.0.0) and libao-dev installed in /usr/local/
+To compile it, you need cmake , ffmpeg-dev (>=V3.0.0) and libao-dev installed in /usr/local/.
+If there is no support for libao on your target or if you are experiencing sound crackling, ALSA rendering can be used by setting the appropriate flag in the CMakeFile.
 
 First, clone the project in $PROJECT_DIR, then:
 

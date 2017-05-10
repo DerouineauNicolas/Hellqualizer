@@ -142,25 +142,6 @@ static int set_swparams(snd_pcm_t *handle, snd_pcm_sw_params_t *swparams)
 
 Rendering::Rendering( HQ_Context *ctx){
 
-    /*
-    ao_initialize();
-
-    default_driver = ao_default_driver_id();
-
-    memset(&ao_format, 0, sizeof(ao_format));
-
-    ao_format.bits = 16;
-    ao_format.channels = ctx->channels;
-    ao_format.rate = ctx->Sampling_rate;//audio_dec_ctx->sample_rate;
-    ao_format.byte_format = AO_FMT_NATIVE;
-    ao_format.matrix=0;
-
-
-    device = ao_open_live(default_driver, &ao_format, NULL  no options );
-    if (device == NULL) {
-        fprintf(stderr, "Error opening device.\n");
-    }*/
-
     snd_pcm_hw_params_alloca(&hwparams);
     snd_pcm_sw_params_alloca(&swparams);
 
@@ -193,8 +174,7 @@ Rendering::Rendering( HQ_Context *ctx){
 
 
 Rendering::~Rendering(){
-    /*ao_close(device);
-    ao_shutdown();*/
+
 }
 
 void *Rendering::play_thread(void *x_void_ptr)
