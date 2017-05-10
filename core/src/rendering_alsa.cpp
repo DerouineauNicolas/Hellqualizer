@@ -169,8 +169,8 @@ Rendering::Rendering( HQ_Context *ctx){
     snd_pcm_hw_params_alloca(&hwparams);
     snd_pcm_sw_params_alloca(&swparams);
 
-
-
+    rate=ctx->Sampling_rate;
+    channels=ctx->channels;
 
     if ((err = snd_pcm_open (&handle, "default", SND_PCM_STREAM_PLAYBACK, 0)) < 0) {
         fprintf (stderr, "cannot open audio device %s (%s)\n");
@@ -203,7 +203,7 @@ static void generate_sine(const snd_pcm_channel_area_t *areas,
         static double max_phase = 2. * M_PI;
         double phase = *_phase;
         double step = max_phase*freq/(double)rate;
-        unsigned char *samples[channels];
+        unsigned char *samples_out[channels];
         int steps[channels];
         unsigned int chn;
         int format_bits = snd_pcm_format_width(format);
@@ -220,13 +220,13 @@ static void generate_sine(const snd_pcm_channel_area_t *areas,
                         printf("areas[%i].first == %i, aborting...\n", chn, areas[chn].first);
                         exit(EXIT_FAILURE);
                 }
-                samples[chn] = /*(signed short *)*/(((unsigned char *)areas[chn].addr) + (areas[chn].first / 8));
+                samples_out[chn] = /*(signed short *)*/(((unsigned char *)areas[chn].addr) + (areas[chn].first / 8));
                 if ((areas[chn].step % 16) != 0) {
                         printf("areas[%i].step == %i, aborting...\n", chn, areas[chn].step);
                         exit(EXIT_FAILURE);
                 }
                 steps[chn] = areas[chn].step / 8;
-                samples[chn] += offset * steps[chn];
+                samples_out[chn] += offset * steps[chn];
         }
         /* fill the channel areas */
         while (count-- > 0) {
@@ -246,12 +246,12 @@ static void generate_sine(const snd_pcm_channel_area_t *areas,
                         /* Generate data in native endian format */
                         if (big_endian) {
                                 for (i = 0; i < bps; i++)
-                                        *(samples[chn] + phys_bps - 1 - i) = (res >> i * 8) & 0xff;
+                                        *(samples_out[chn] + phys_bps - 1 - i) = (res >> i * 8) & 0xff;
                         } else {
                                 for (i = 0; i < bps; i++)
-                                        *(samples[chn] + i) = (res >>  i * 8) & 0xff;
+                                        *(samples_out[chn] + i) = (res >>  i * 8) & 0xff;
                         }
-                        samples[chn] += steps[chn];
+                        samples_out[chn] += steps[chn];
                 }
                 phase += step;
                 if (phase >= max_phase)
@@ -272,11 +272,11 @@ void *Rendering::play_thread(void *x_void_ptr)
     const int buffer_size=AVCODEC_MAX_AUDIO_FRAME_SIZE+ FF_INPUT_BUFFER_PADDING_SIZE;
     unsigned int chn;
 
-//    uint8_t *samples;
-//    samples=(uint8_t*)malloc(buffer_size*sizeof(uint8_t));
+    uint8_t *samples;
+    samples=(uint8_t*)malloc(buffer_size*sizeof(uint8_t));
 
-   signed short *samples;
-    samples = (short int*)malloc((period_size * channels * snd_pcm_format_physical_width(format)) / 8);
+    signed short *samples_out;
+    samples_out = (short int*)malloc((period_size * channels * snd_pcm_format_physical_width(format)) / 8);
 
     areas = (snd_pcm_channel_area_t*)calloc(channels, sizeof(snd_pcm_channel_area_t));
     if (areas == NULL) {
@@ -284,7 +284,7 @@ void *Rendering::play_thread(void *x_void_ptr)
             exit(EXIT_FAILURE);
     }
     for (chn = 0; chn < channels; chn++) {
-            areas[chn].addr = samples;
+            areas[chn].addr = samples_out;
             areas[chn].first = chn * snd_pcm_format_physical_width(format);
             areas[chn].step = channels * snd_pcm_format_physical_width(format);
     }
@@ -295,33 +295,42 @@ void *Rendering::play_thread(void *x_void_ptr)
 
     while(1){
         if(m_ctx->state==PLAY){
-//            pthread_mutex_lock(m_mutex);
-//            //printf("RENDER: %d \n",m_buffer_decode_process->GetReadAvail());
-//            while(m_buffer_decode_process->GetReadAvail()<output_size){
-//                if(m_ctx->state==END_OF_DECODING)
-//                    break;
-//                pthread_cond_wait(m_signal, m_mutex);
-//            }
-//            if(m_ctx->state==END_OF_DECODING)
-//                break;
-//            m_buffer_decode_process->Read(samples,output_size);
-//            processor->process(&samples,output_size, m_ctx);
-//            for (int i = 0; i < output_size; ++i) {
-//                if ((err = snd_pcm_writei (handle,++samples, 128)) != 128) {
-//                    fprintf (stderr, "write to audio interface failed (%s)\n",
-//                             snd_strerror (err));
-//                    exit (1);
-//                }
-//            }
-//            //ao_play(device,(char*)samples, output_size);
-//            pthread_mutex_unlock(m_mutex);
+#if 1
+            pthread_mutex_lock(m_mutex);
+            //printf("RENDER: %d \n",m_buffer_decode_process->GetReadAvail());
+            while(m_buffer_decode_process->GetReadAvail()<output_size){
+                if(m_ctx->state==END_OF_DECODING)
+                    break;
+                pthread_cond_wait(m_signal, m_mutex);
+            }
+            if(m_ctx->state==END_OF_DECODING)
+                break;
+            m_buffer_decode_process->Read(samples,output_size);
+            processor->process(&samples,output_size, m_ctx);
+            samples_out=(signed short*)samples;
+//            for(int i=0;i<(output_size/4);i++)
+//               printf("%d \n",*(samples_out+i));
+
+                if ((err = snd_pcm_writei (handle, samples_out, output_size/4)) != (output_size/4)) {
+                    fprintf (stderr, "write to audio interface failed (%s)\n",
+                             snd_strerror (err));
+                    exit (1);
+                }
+            //}
+            //ao_play(device,(char*)samples, output_size);
+            pthread_mutex_unlock(m_mutex);
+#endif
+
+#if 0
             generate_sine(areas, 0, period_size, &phase);
-            ptr = samples;
+            ptr = samples_out;
             cptr = period_size;
             while (cptr > 0) {
                     err = snd_pcm_writei(handle, ptr, cptr);
-                    if (err == -EAGAIN)
-                            continue;
+                    for(int i=0;i<cptr;i++)
+                        printf("%d \n",*(ptr+i));
+//                    if (err == -EAGAIN)
+//                            continue;
 //                    if (err < 0) {
 //                            if (xrun_recovery(handle, err) < 0) {
 //                                    printf("Write error: %s\n", snd_strerror(err));
@@ -332,6 +341,7 @@ void *Rendering::play_thread(void *x_void_ptr)
                     ptr += err * channels;
                     cptr -= err;
             }
+#endif
         }
         else{
             usleep(1000000);
