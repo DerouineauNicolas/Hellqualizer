@@ -1,11 +1,11 @@
 #include <rendering.h>
 #include <ao/ao.h>
 #include <unistd.h>
+#include <string.h>
 
 static ao_device *device;
 static ao_sample_format ao_format;
 static int default_driver;
-static const int buffer_size=AVCODEC_MAX_AUDIO_FRAME_SIZE+ FF_INPUT_BUFFER_PADDING_SIZE;
 
 /*############################LIBABO############*/
 
@@ -48,10 +48,9 @@ void *Rendering::play_thread(void *x_void_ptr)
 {
     static int output_size=2048;
     Processing* processor=new Processing(output_size);
-    const int buffer_size=AVCODEC_MAX_AUDIO_FRAME_SIZE+ FF_INPUT_BUFFER_PADDING_SIZE;
 
     uint8_t *samples;
-    samples=(uint8_t*)malloc(buffer_size*sizeof(uint8_t));
+    samples=(uint8_t*)malloc(output_size*sizeof(uint8_t));
 
     while(1){
         if(m_ctx->state==PLAY){
@@ -68,6 +67,7 @@ void *Rendering::play_thread(void *x_void_ptr)
             processor->process(&samples,output_size, m_ctx);
             ao_play(device,(char*)samples, output_size);
             pthread_mutex_unlock(m_mutex);
+
         }
         else{
             usleep(1000000);

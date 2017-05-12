@@ -3,13 +3,6 @@
 
 #include <Hellqualizer.h>
 
-extern "C" {
-#include <libavutil/imgutils.h>
-#include <libavcodec/avcodec.h>
-#include <libswscale/swscale.h>
-#include <libavformat/avformat.h>
-}
-
 #include <pthread.h>
 #include <ring_buffer.h>
 #include <processing.h>

@@ -181,11 +181,9 @@ void *Rendering::play_thread(void *x_void_ptr)
 {
     static int output_size=2048;
     Processing* processor=new Processing(output_size);
-    const int buffer_size=AVCODEC_MAX_AUDIO_FRAME_SIZE+ FF_INPUT_BUFFER_PADDING_SIZE;
-    unsigned int chn;
 
     uint8_t *samples;
-    samples=(uint8_t*)malloc(buffer_size*sizeof(uint8_t));
+    samples=(uint8_t*)malloc(output_size*sizeof(uint8_t));
 
     signed short *samples_out;
 
@@ -204,6 +202,7 @@ void *Rendering::play_thread(void *x_void_ptr)
                 break;
             m_buffer_decode_process->Read(samples,output_size);
             processor->process(&samples,output_size, m_ctx);
+
             samples_out=(signed short*)samples;
             //            for(int i=0;i<(output_size/4);i++)
             //               printf("%d \n",*(samples_out+i));
@@ -211,9 +210,10 @@ void *Rendering::play_thread(void *x_void_ptr)
             if ((err = snd_pcm_writei (handle, samples_out, output_size/4)) != (output_size/4)) {
                 fprintf (stderr, "write to audio interface failed (%s)\n",
                          snd_strerror (err));
-                exit (1);
+                //exit (1);
             }
             pthread_mutex_unlock(m_mutex);
+
         }
         else{
             usleep(1000000);
