@@ -168,6 +168,9 @@ Rendering::Rendering( HQ_Context *ctx){
     m_mutex=&ctx->m_mutex_process_to_render;
     m_signal=&ctx->m_signal_process_to_render;
     m_input_buffer=ctx->Buffer_process_render;
+//    m_mutex=&ctx->m_mutex_decode_to_process;
+//    m_signal=&ctx->m_signal_decode_to_process;
+//    m_input_buffer=ctx->Buffer_decode_process;
     m_ctx=ctx;
 
 }
@@ -193,7 +196,7 @@ void *Rendering::play_thread(void *x_void_ptr)
     while(1){
         if(m_ctx->state==PLAY){
             pthread_mutex_lock(m_mutex);
-            //printf("RENDER: %d \n",m_buffer_decode_process->GetReadAvail());
+            printf("RENDER: %d \n",m_input_buffer->GetReadAvail());
             while(m_input_buffer->GetReadAvail()<output_size){
                 if(m_ctx->state==END_OF_DECODING)
                     break;
@@ -224,7 +227,6 @@ void *Rendering::play_thread(void *x_void_ptr)
                 //exit (1);
             }
             pthread_mutex_unlock(m_mutex);
-
         }
         else{
             usleep(1000000);

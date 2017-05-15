@@ -78,15 +78,11 @@ void *Processing::processing_thread(void *x_void_ptr)
 {
 
     //Processing* processor=new Processing(output_size);
-    //const int buffer_size=AVCODEC_MAX_AUDIO_FRAME_SIZE+ FF_INPUT_BUFFER_PADDING_SIZE;
-    unsigned int chn;
 
     uint8_t *samples;
     samples=(uint8_t*)malloc(output_size*sizeof(uint8_t));
 
     //signed short *samples_out;
-
-    int err;
 
     while(1){
         if(m_ctx->state==PLAY){
@@ -100,30 +96,18 @@ void *Processing::processing_thread(void *x_void_ptr)
             if(m_ctx->state==END_OF_DECODING)
                 break;
             m_buffer_decode_process->Read(samples,output_size);
-            this->process(&samples,output_size, m_ctx);
-            //samples_out=(signed short*)samples;
-            //            for(int i=0;i<(output_size/4);i++)
-            //               printf("%d \n",*(samples_out+i));
-
-//            if ((err = snd_pcm_writei (handle, samples_out, output_size/4)) != (output_size/4)) {
-//                fprintf (stderr, "write to audio interface failed (%s)\n",
-//                         snd_strerror (err));
-//                //exit (1);
-//            }
             pthread_mutex_unlock(m_mutex_decode_process);
+            this->process(&samples,output_size, m_ctx);
             pthread_mutex_lock(m_mutex_process_render);
             //printf("OUTPUT_PROCESSING: %d \n",m_buffer_process_render->GetWriteAvail());
-            while(m_buffer_process_render->GetWriteAvail()<output_size){
-                if(m_ctx->state==END_OF_DECODING)
-                    break;
-                pthread_cond_wait(m_signal_decode_process, m_mutex_process_render);
-            }
             if(m_ctx->state==END_OF_DECODING)
                 break;
-            m_buffer_process_render->Write(samples, output_size);
+            if(m_buffer_process_render->GetWriteAvail()>(output_size)){
+                m_buffer_process_render->Write(samples, output_size);
+                pthread_cond_signal(m_signal_process_render);
+            }
             pthread_mutex_unlock(m_mutex_process_render);
-            pthread_cond_signal(m_signal_process_render);
-
+            //
 
         }
         else{

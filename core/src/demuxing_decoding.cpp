@@ -206,31 +206,38 @@ void *DemuxDecode::decode_thread(void *x_void_ptr)
     int num_bytes=0,got_frame;
     int got_space;
     while (1) {
-        pthread_mutex_lock(m_mutex);
-        got_space=m_buffer->GetWriteAvail();
-        pthread_mutex_unlock(m_mutex);
-        //printf("got_space= %d",got_space );
-        if(got_space>5000){
-            if(av_read_frame(fmt_ctx, &pkt) >= 0){
-                /*We decode only audio, skipping other packets*/
-                if(pkt.stream_index==audio_stream_idx){
-                    AVPacket orig_pkt = pkt;
-                    do {
-                        decode_audio_packet(&got_frame, &num_bytes,0);
-                        if (num_bytes < 0)
-                            break;
-                        pkt.data += num_bytes;
-                        pkt.size -= num_bytes;
-                    } while (pkt.size > 0);
-                    av_packet_unref(&orig_pkt);
+        if(m_ctx->state==PLAY){
+            pthread_mutex_lock(m_mutex);
+            got_space=m_buffer->GetWriteAvail();
+            pthread_mutex_unlock(m_mutex);
+            //printf("got_space= %d",got_space );
+
+            if(got_space>5000){
+                if(av_read_frame(fmt_ctx, &pkt) >= 0){
+                    /*We decode only audio, skipping other packets*/
+                    if(pkt.stream_index==audio_stream_idx){
+                        AVPacket orig_pkt = pkt;
+                        do {
+                            decode_audio_packet(&got_frame, &num_bytes,0);
+                            if (num_bytes < 0)
+                                break;
+                            pkt.data += num_bytes;
+                            pkt.size -= num_bytes;
+                        } while (pkt.size > 0);
+                        av_packet_unref(&orig_pkt);
+                    }
+                }
+                else
+                {
+                    pthread_mutex_lock(m_mutex);
+                    m_ctx->state=END_OF_DECODING;
+                    pthread_mutex_unlock(m_mutex);
+                    break;
                 }
             }
-            else
-            {
-                pthread_mutex_lock(m_mutex);
-                m_ctx->state=END_OF_DECODING;
-                pthread_mutex_unlock(m_mutex);
-                break;
+            else{
+                usleep(100000);
+                //printf("Input Buffer overflow !!! \n");
             }
         }
         else if(m_ctx->state==PAUSE){
