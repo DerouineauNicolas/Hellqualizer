@@ -185,9 +185,9 @@ void *Rendering::play_thread(void *x_void_ptr)
     uint8_t *samples;
     samples=(uint8_t*)malloc(output_size*sizeof(uint8_t));
 
-    signed short *samples_out;
+    signed short *samples_out=NULL;
 
-    int err;
+    int err,cptr;
 
     while(1){
         if(m_ctx->state==PLAY){
@@ -206,10 +206,20 @@ void *Rendering::play_thread(void *x_void_ptr)
             samples_out=(signed short*)samples;
             //            for(int i=0;i<(output_size/4);i++)
             //               printf("%d \n",*(samples_out+i));
-
-            if ((err = snd_pcm_writei (handle, samples_out, output_size/4)) != (output_size/4)) {
-                fprintf (stderr, "write to audio interface failed (%s)\n",
-                         snd_strerror (err));
+            cptr = (output_size/4);
+            while (cptr > 0) {
+                err = snd_pcm_writei (handle, samples_out, output_size/4);
+                if (err == -EAGAIN)
+                        continue;
+                else if (err == -EPIPE) {
+                      snd_pcm_prepare(handle);
+                      continue;
+                }
+                else if (err < 0) {
+                    printf("[ALSA] Write failure: %s\n", snd_strerror(err));
+                }
+                samples_out += err * channels;
+                cptr -= err;
                 //exit (1);
             }
             pthread_mutex_unlock(m_mutex);
