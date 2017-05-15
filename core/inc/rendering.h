@@ -23,7 +23,7 @@ private:
     void InternalThreadEntry();
     pthread_mutex_t *m_mutex;
     pthread_cond_t *m_signal;
-    RingBuffer *m_buffer_decode_process;
+    RingBuffer *m_input_buffer;
     //processing_options *m_processing_options;
     HQ_Context *m_ctx;
 

@@ -29,8 +29,11 @@ typedef struct HQ_Context{
 
     pthread_mutex_t m_mutex_decode_to_process;   //=PTHREAD_MUTEX_INITIALIZER;
     pthread_cond_t m_signal_decode_to_process;
+    pthread_mutex_t m_mutex_process_to_render;   //=PTHREAD_MUTEX_INITIALIZER;
+    pthread_cond_t m_signal_process_to_render;
     //pthread_cond_init (&m_signal,NULL);
     RingBuffer* Buffer_decode_process;
+    RingBuffer* Buffer_process_render;
 }HQ_Context;
 
 

@@ -165,9 +165,9 @@ Rendering::Rendering( HQ_Context *ctx){
 
 
 
-    m_mutex=&ctx->m_mutex_decode_to_process;
-    m_signal=&ctx->m_signal_decode_to_process;
-    m_buffer_decode_process=ctx->Buffer_decode_process;
+    m_mutex=&ctx->m_mutex_process_to_render;
+    m_signal=&ctx->m_signal_process_to_render;
+    m_input_buffer=ctx->Buffer_process_render;
     m_ctx=ctx;
 
 }
@@ -180,7 +180,8 @@ Rendering::~Rendering(){
 void *Rendering::play_thread(void *x_void_ptr)
 {
     static int output_size=2048;
-    Processing* processor=new Processing(output_size);
+
+    //Processing* processor=new Processing(output_size);
 
     uint8_t *samples;
     samples=(uint8_t*)malloc(output_size*sizeof(uint8_t));
@@ -193,15 +194,15 @@ void *Rendering::play_thread(void *x_void_ptr)
         if(m_ctx->state==PLAY){
             pthread_mutex_lock(m_mutex);
             //printf("RENDER: %d \n",m_buffer_decode_process->GetReadAvail());
-            while(m_buffer_decode_process->GetReadAvail()<output_size){
+            while(m_input_buffer->GetReadAvail()<output_size){
                 if(m_ctx->state==END_OF_DECODING)
                     break;
                 pthread_cond_wait(m_signal, m_mutex);
             }
             if(m_ctx->state==END_OF_DECODING)
                 break;
-            m_buffer_decode_process->Read(samples,output_size);
-            processor->process(&samples,output_size, m_ctx);
+            m_input_buffer->Read(samples,output_size);
+            //processor->process(&samples,output_size, m_ctx);
 
             samples_out=(signed short*)samples;
             //            for(int i=0;i<(output_size/4);i++)
@@ -231,7 +232,7 @@ void *Rendering::play_thread(void *x_void_ptr)
 
     }
 
-    delete processor;
+    //delete processor;
 
     free(samples);
 }

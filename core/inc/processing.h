@@ -3,14 +3,16 @@
 #include <Hellqualizer.h>
 #include <fir_float.h>
 #include <stdint.h>
+#include <threadclass.h>
 
 
 #define NUM_EQ_BANDS 5
 
-class Processing
+class Processing: public MyThreadClass
 {
 public:
-    Processing( int sample_size);
+    Processing( HQ_Context *ctx);
+    Processing();
     ~Processing();
     void process(uint8_t **samples_in, int size, HQ_Context *options);
 private:
@@ -28,8 +30,17 @@ private:
     double *f_left_ch_in;
     FIR_FLOAT_1Ch *right_FIR;
     FIR_FLOAT_1Ch *left_FIR;
+    pthread_mutex_t *m_mutex_decode_process;
+    pthread_cond_t *m_signal_decode_process;
+    RingBuffer *m_buffer_decode_process;
+    pthread_mutex_t *m_mutex_process_render;
+    pthread_cond_t *m_signal_process_render;
+    RingBuffer *m_buffer_process_render;
+    HQ_Context *m_ctx;
     void EQ_stereo_44100(int size,processing_options options);
     void EQ_stereo_48000(int size,processing_options options);
+    void InternalThreadEntry();
+    void *processing_thread(void *x_void_ptr);
 };
 
 #endif
