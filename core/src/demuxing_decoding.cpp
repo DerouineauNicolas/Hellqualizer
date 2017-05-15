@@ -128,78 +128,76 @@ int DemuxDecode::open_codec_context(int *stream_idx, AVCodecContext **dec_ctx, A
 
 
 
-void DemuxDecode::decode_packet(int *got_frame, int *bytes_read,int cached)
+void DemuxDecode::decode_audio_packet(int *got_frame, int *bytes_read,int cached)
 {
     int ret = 0;
 
     *got_frame = 0;
     int decoded = pkt.size;
 
-    if (pkt.stream_index == audio_stream_idx) {
-        /* decode audio frame */
+    /* decode audio frame */
 
-        ret = avcodec_decode_audio4(audio_dec_ctx, frame, got_frame, &pkt);
-        if (ret < 0) {
-            /*fprintf(stderr, "Error decoding audio frame (%s)\n", av_err2str(ret));*/
-            //return ret;
-            *bytes_read=-1;
-            goto endofdecoding;
-        }
+    ret = avcodec_decode_audio4(audio_dec_ctx, frame, got_frame, &pkt);
+    if (ret < 0) {
+        /*fprintf(stderr, "Error decoding audio frame (%s)\n", av_err2str(ret));*/
+        //return ret;
+        *bytes_read=-1;
+        //goto endofdecoding;
+        return;
+    }
 
-        data_size = av_samples_get_buffer_size(&plane_size, audio_dec_ctx->channels,
-                                               frame->nb_samples,
-                                               audio_dec_ctx->sample_fmt, 1);
-
-
+    data_size = av_samples_get_buffer_size(&plane_size, audio_dec_ctx->channels,
+                                           frame->nb_samples,
+                                           audio_dec_ctx->sample_fmt, 1);
 
 
-        /* Some audio decoders decode only part of the packet, and have to be
+
+
+    /* Some audio decoders decode only part of the packet, and have to be
      * called again with the remainder of the packet data.
      * Sample: fate-suite/lossless-audio/luckynight-partial.shn
      * Also, some decoders might over-read the packet. */
-        decoded = FFMIN(ret, pkt.size);
+    decoded = FFMIN(ret, pkt.size);
 
-        uint8_t samples[buffer_size];
-        uint16_t *out = (uint16_t *)samples;
+    uint8_t samples[buffer_size];
+    uint16_t *out = (uint16_t *)samples;
 
-        if (*got_frame) {
-            if(audio_dec_ctx->sample_fmt==AV_SAMPLE_FMT_FLTP){
-                for (int j=0; j<audio_dec_ctx->channels; j++) {
-                    float* inputChannel = (float*)frame->extended_data[j];
-                    for (int i=0 ; i<frame->nb_samples ; i++) {
-                        float sample = inputChannel[i];
-                        if (sample<-1.0f) sample=-1.0f;
-                        else if (sample>1.0f) sample=1.0f;
-                        out[i*audio_dec_ctx->channels + j] = (int16_t) (sample * 32767.0f );
-                    }
+    if (*got_frame) {
+        if(audio_dec_ctx->sample_fmt==AV_SAMPLE_FMT_FLTP){
+            for (int j=0; j<audio_dec_ctx->channels; j++) {
+                float* inputChannel = (float*)frame->extended_data[j];
+                for (int i=0 ; i<frame->nb_samples ; i++) {
+                    float sample = inputChannel[i];
+                    if (sample<-1.0f) sample=-1.0f;
+                    else if (sample>1.0f) sample=1.0f;
+                    out[i*audio_dec_ctx->channels + j] = (int16_t) (sample * 32767.0f );
                 }
-            } else if (audio_dec_ctx->sample_fmt==AV_SAMPLE_FMT_S16P) {
-                int i, j;
-                for (j=0; j<audio_dec_ctx->channels; j++) {
-                    int16_t* inputChannel = (int16_t*)frame->extended_data[j];
-                    for (i=0 ; i<frame->nb_samples ; i++) {
-                        float sample = inputChannel[i];
-                        out[i*audio_dec_ctx->channels + j] = (int16_t) (sample );
-                    }
-                }
-            } else
-            {
-                printf("ffmpeg audio output format not (yet) supported \n");
-                return;
             }
-
-            pthread_mutex_lock(m_mutex);
-            m_buffer->Write(samples, 2*audio_dec_ctx->channels*frame->nb_samples);
-            pthread_mutex_unlock(m_mutex);
-            pthread_cond_signal(m_signal);
+        } else if (audio_dec_ctx->sample_fmt==AV_SAMPLE_FMT_S16P) {
+            int i, j;
+            for (j=0; j<audio_dec_ctx->channels; j++) {
+                int16_t* inputChannel = (int16_t*)frame->extended_data[j];
+                for (i=0 ; i<frame->nb_samples ; i++) {
+                    float sample = inputChannel[i];
+                    out[i*audio_dec_ctx->channels + j] = (int16_t) (sample );
+                }
+            }
+        } else
+        {
+            printf("ffmpeg audio output format not (yet) supported \n");
+            return;
         }
+
+        pthread_mutex_lock(m_mutex);
+        m_buffer->Write(samples, 2*audio_dec_ctx->channels*frame->nb_samples);
+        pthread_mutex_unlock(m_mutex);
+        pthread_cond_signal(m_signal);
     }
+
 
 
     if(!(ret<0))
         *bytes_read=ret;
-endofdecoding:
-    ;
 
 }
 
@@ -214,15 +212,19 @@ void *DemuxDecode::decode_thread(void *x_void_ptr)
         //printf("got_space= %d",got_space );
         if(got_space>5000){
             if(av_read_frame(fmt_ctx, &pkt) >= 0){
-                AVPacket orig_pkt = pkt;
-                do {
-                    decode_packet(&got_frame, &num_bytes,0);
-                    if (num_bytes < 0)
-                        break;
-                    pkt.data += num_bytes;
-                    pkt.size -= num_bytes;
-                } while (pkt.size > 0);
-                av_packet_unref(&orig_pkt);}
+                /*We decode only audio, skipping other packets*/
+                if(pkt.stream_index==audio_stream_idx){
+                    AVPacket orig_pkt = pkt;
+                    do {
+                        decode_audio_packet(&got_frame, &num_bytes,0);
+                        if (num_bytes < 0)
+                            break;
+                        pkt.data += num_bytes;
+                        pkt.size -= num_bytes;
+                    } while (pkt.size > 0);
+                    av_packet_unref(&orig_pkt);
+                }
+            }
             else
             {
                 pthread_mutex_lock(m_mutex);

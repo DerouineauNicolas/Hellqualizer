@@ -22,7 +22,7 @@ public:
     DemuxDecode(const char* src_file_name, HQ_Context *ctx);
     DemuxDecode();
     ~DemuxDecode();
-    void decode_packet(int *got_frame, int *bytes_read,int cached);
+    void decode_audio_packet(int *got_frame, int *bytes_read,int cached);
     void *decode_thread(void *x_void_ptr);
     AVFormatContext* GetFormatCtx(void);
     AVCodecContext* GetAVCtx(void);
