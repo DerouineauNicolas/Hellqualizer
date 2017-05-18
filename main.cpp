@@ -36,8 +36,6 @@ int main (int argc, char **argv)
 {
     HQ_Context Ctx;
 
-
-
     if ( (argc <2)) {
         fprintf(stderr, "Wrong Usage \n");
         exit(1);
@@ -51,7 +49,7 @@ int main (int argc, char **argv)
 
 
 #ifdef HQ_GUI
-    GUI *gui_control=new GUI(src_filename,&EndOfDecoding, &proc_options);
+    GUI *gui_control=new GUI(src_filename,&Ctx);
 #else
     Controler *control=new Controler(src_filename, &Ctx);
 #endif

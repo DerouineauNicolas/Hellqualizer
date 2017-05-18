@@ -27,15 +27,15 @@
 class GUI: public MyThreadClass
 {
 public:
-    GUI(char* src_file_name, int *endofdecoding, processing_options *processing_opt);
+    GUI(char* src_file_name, HQ_Context *ctx);
     GUI();
     ~GUI();
     void *gui_thread(void *x_void_ptr);
 private:
     void InternalThreadEntry();
     processing_options *m_processing_options;
-    int *m_end_of_decoding;
     char* m_src_file_name;
+    HQ_Context *m_ctx;
     //GLFWwindow* m_window;
 };
 

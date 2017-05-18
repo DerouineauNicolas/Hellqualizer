@@ -19,8 +19,8 @@
 #include "nuklear.h"
 #include "nuklear_glfw_gl2.h"
 
-#define WINDOW_WIDTH 1200
-#define WINDOW_HEIGHT 800
+#define WINDOW_WIDTH 704
+#define WINDOW_HEIGHT 576
 
 #define UNUSED(a) (void)a
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
@@ -35,11 +35,10 @@ static void error_callback(int e, const char *d)
 {printf("Error %d: %s\n", e, d);}
 
 
-GUI::GUI(char* src_file_name, int *endofdecoding, processing_options *processing_opt)
+GUI::GUI(char* src_file_name, HQ_Context *ctx)
 {
    m_src_file_name=src_file_name;
-   m_end_of_decoding=endofdecoding;
-   m_processing_options=processing_opt;
+   m_ctx=ctx;
 }
 
 void *GUI::gui_thread(void *x_void_ptr)
@@ -49,6 +48,7 @@ void *GUI::gui_thread(void *x_void_ptr)
     int width = 0, height = 0;
     struct nk_context *ctx;
     struct nk_color background;
+    float G0=1.0,G1=1.0,G2=1.0,G3=1.0,G4=1.0;
 
     /* GLFW */
     glfwSetErrorCallback(error_callback);
@@ -82,6 +82,7 @@ void *GUI::gui_thread(void *x_void_ptr)
     /*set_style(ctx, THEME_BLUE);*/
     /*set_style(ctx, THEME_DARK);*/
 
+
     background = nk_rgb(28,48,62);
     while (!glfwWindowShouldClose(win))
     {
@@ -90,37 +91,33 @@ void *GUI::gui_thread(void *x_void_ptr)
         nk_glfw3_new_frame();
 
         /* GUI */
-        if (nk_begin(ctx, "Hellqualizer", nk_rect(50, 50, 230, 250),
+        if (nk_begin(ctx, "Hellqualizer", nk_rect(50, 50, 300, 350),
             NK_WINDOW_BORDER|NK_WINDOW_MOVABLE|NK_WINDOW_SCALABLE|
             NK_WINDOW_MINIMIZABLE|NK_WINDOW_TITLE))
         {
-            enum {EASY, HARD};
-            static int op = EASY;
-            static int property = 20;
-            nk_layout_row_static(ctx, 30, 80, 1);
-            if (nk_button_label(ctx, "button"))
-                fprintf(stdout, "button pressed\n");
+            nk_layout_row_static(ctx, 30, 150, 1);
+            if (nk_button_label(ctx, "Play/Pause")){
+                //fprintf(stdout, "button pressed\n");
+                if(m_ctx->state==PLAY){
+                    printf("Pause \n");
+                    m_ctx->state=PAUSE;
+                }else if(m_ctx->state==PAUSE){
+                    printf("Play \n");
+                    m_ctx->state=PLAY;
+                }
+            }
 
-            /*nk_layout_row_dynamic(ctx, 30, 2);
-            if (nk_option_label(ctx, "easy", op == EASY)) op = EASY;
-            if (nk_option_label(ctx, "hard", op == HARD)) op = HARD;
+            if (nk_button_label(ctx, "Enable/Disable EQ")){
+               m_ctx->proc_opt.do_process=(m_ctx->proc_opt.do_process==1)?0:1;
+            }
+
 
             nk_layout_row_dynamic(ctx, 25, 1);
-            nk_property_int(ctx, "Compression:", 0, &property, 100, 10, 1);
-
-            nk_layout_row_dynamic(ctx, 20, 1);
-            nk_label(ctx, "background:", NK_TEXT_LEFT);
-            nk_layout_row_dynamic(ctx, 25, 1);
-            if (nk_combo_begin_color(ctx, background, nk_vec2(nk_widget_width(ctx),400))) {
-                nk_layout_row_dynamic(ctx, 120, 1);
-                background = nk_color_picker(ctx, background, NK_RGBA);
-                nk_layout_row_dynamic(ctx, 25, 1);
-                background.r = (nk_byte)nk_propertyi(ctx, "#R:", 0, background.r, 255, 1,1);
-                background.g = (nk_byte)nk_propertyi(ctx, "#G:", 0, background.g, 255, 1,1);
-                background.b = (nk_byte)nk_propertyi(ctx, "#B:", 0, background.b, 255, 1,1);
-                background.a = (nk_byte)nk_propertyi(ctx, "#A:", 0, background.a, 255, 1,1);
-                nk_combo_end(ctx);
-            }*/
+            nk_property_float(ctx, "Gain 0 - 2000 Hz:", 0, &G0, 10.0, 0.1, 0.1);
+            nk_property_float(ctx, "Gain 2000 - 4000 Hz:", 0, &G1, 10.0, 0.1, 0.1);
+            nk_property_float(ctx, "Gain 4000 - 6000 Hz:", 0, &G2, 10.0, 0.1, 0.1);
+            nk_property_float(ctx, "Gain 6000 - 10000 Hz:", 0, &G3, 10.0, 0.1, 0.1);
+            nk_property_float(ctx, "Gain 10000 - 22000 Hz:", 0, &G4, 10.0, 0.1, 0.1);
         }
         nk_end(ctx);
 
@@ -142,7 +139,15 @@ void *GUI::gui_thread(void *x_void_ptr)
          * back into a default state. Make sure to either save and restore or
          * reset your own state after drawing rendering the UI. */
         nk_glfw3_render(NK_ANTI_ALIASING_ON);
-        glfwSwapBuffers(win);}
+        glfwSwapBuffers(win);
+        }
+
+        m_ctx->proc_opt.GAIN[0]=G0;
+        m_ctx->proc_opt.GAIN[1]=G1;
+        m_ctx->proc_opt.GAIN[2]=G2;
+        m_ctx->proc_opt.GAIN[3]=G3;
+        m_ctx->proc_opt.GAIN[4]=G4;
+        usleep(50000);
     }
     nk_glfw3_shutdown();
     glfwTerminate();
