@@ -18,6 +18,7 @@
 static void init_Hellqualizer(HQ_Context *Ctx){
     pthread_cond_init (&Ctx->m_signal_decode_to_process,NULL);
     pthread_mutex_init(&Ctx->m_mutex_decode_to_process,NULL);
+
     Ctx->Buffer_decode_process=new RingBuffer(44100*2);
     Ctx->proc_opt.do_process=1;
     Ctx->proc_opt.GAIN[0]=1.0;
@@ -30,6 +31,8 @@ static void init_Hellqualizer(HQ_Context *Ctx){
 
 static void Destroy_Hellqualizer(HQ_Context *Ctx){
     delete(Ctx->Buffer_decode_process);
+    pthread_cond_destroy(&Ctx->m_signal_decode_to_process);
+    pthread_mutex_destroy(&Ctx->m_mutex_decode_to_process);
 }
 
 int main (int argc, char **argv)
@@ -80,5 +83,7 @@ int main (int argc, char **argv)
 #else
     delete control;
 #endif
+
+    Destroy_Hellqualizer(&Ctx);
 
 }
