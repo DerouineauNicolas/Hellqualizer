@@ -19,15 +19,13 @@ extern "C" {
 #define USE_AVCODEC2	1
 #endif
 
-#else
-#undef USE_AVCODEC2
-#endif
 
 #if (LIBAVCODEC_VERSION_MAJOR >= 55)
 #define USE_AVCTX3
 #elif (LIBAVCODEC_VERSION_MAJOR >= 54) && (LIBAVCODEC_VERSION_MINOR >= 35)
 #define USE_AVCTX3
 #endif
+
 
 #include <pthread.h>
 #include <ring_buffer.h>
