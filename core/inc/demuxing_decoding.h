@@ -11,6 +11,7 @@ extern "C" {
 #if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(55,28,1)
 #define av_frame_alloc  avcodec_alloc_frame
 #define av_frame_free   avcodec_free_frame
+#define av_packet_unref av_free_packet
 #endif
 
 #if ((LIBAVCODEC_VERSION_MAJOR == 52) && (LIBAVCODEC_VERSION_MINOR <= 20)) || (LIBAVCODEC_VERSION_MAJOR < 52)

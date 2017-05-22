@@ -115,7 +115,11 @@ int DemuxDecode::open_codec_context(int *stream_idx, AVCodecContext **dec_ctx, A
 
         /* Init the decoders, with or without reference counting */
         av_dict_set(&opts, "refcounted_frames", refcount ? "1" : "0", 0);
+#ifdef USE_AVCTX3
         if ((ret = avcodec_open2(*dec_ctx, dec, &opts)) < 0) {
+#else
+        if ((ret = avcodec_open(*dec_ctx, dec)) < 0) {
+#endif
             fprintf(stderr, "Failed to open codec\n");//,
                    // av_get_media_type_string(type));
             return ret;
