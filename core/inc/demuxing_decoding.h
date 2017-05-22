@@ -8,6 +8,27 @@ extern "C" {
 #include <libavformat/avformat.h>
 }
 
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(55,28,1)
+#define av_frame_alloc  avcodec_alloc_frame
+#define av_frame_free   avcodec_free_frame
+#endif
+
+#if ((LIBAVCODEC_VERSION_MAJOR == 52) && (LIBAVCODEC_VERSION_MINOR <= 20)) || (LIBAVCODEC_VERSION_MAJOR < 52)
+#undef USE_AVCODEC2
+#else
+#define USE_AVCODEC2	1
+#endif
+
+#else
+#undef USE_AVCODEC2
+#endif
+
+#if (LIBAVCODEC_VERSION_MAJOR >= 55)
+#define USE_AVCTX3
+#elif (LIBAVCODEC_VERSION_MAJOR >= 54) && (LIBAVCODEC_VERSION_MINOR >= 35)
+#define USE_AVCTX3
+#endif
+
 #include <pthread.h>
 #include <ring_buffer.h>
 #include <threadclass.h>
