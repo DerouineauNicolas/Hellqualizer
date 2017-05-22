@@ -5,7 +5,7 @@ compiler:
     - clang
 
 before_install:
-    - sudo apt-get install libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libavdevice-dev libav-extra
+    - sudo apt-get install libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libavdevice-dev libavcodec-extra
 
 before_script:  
     - mkdir build
