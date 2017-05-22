@@ -60,7 +60,6 @@ DemuxDecode::DemuxDecode(const char* src_file_name, HQ_Context *ctx)
 }
 
 DemuxDecode::~DemuxDecode(){
-    avcodec_free_context(&video_dec_ctx);
     avcodec_free_context(&audio_dec_ctx);
     avformat_close_input(&fmt_ctx);
     av_frame_free(&frame);
