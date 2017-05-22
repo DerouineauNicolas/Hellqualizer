@@ -60,7 +60,12 @@ DemuxDecode::DemuxDecode(const char* src_file_name, HQ_Context *ctx)
 }
 
 DemuxDecode::~DemuxDecode(){
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(55,28,1)
+    avcodec_close(&audio_dec_ctx);
+    av_free(&audio_dec_ctx);
+#else
     avcodec_free_context(&audio_dec_ctx);
+#endif
     avformat_close_input(&fmt_ctx);
     av_frame_free(&frame);
     av_free(video_dst_data[0]);
