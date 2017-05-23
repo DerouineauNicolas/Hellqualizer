@@ -41,7 +41,7 @@ int main (int argc, char **argv)
 
     if ( (argc <2)) {
         fprintf(stderr, "Wrong Usage \n");
-        exit(1);
+        exit(EXIT_SUCCESS);
     }
     char *src_filename = argv[1];
 

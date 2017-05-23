@@ -99,6 +99,8 @@ void *Controler::control_thread(void *x_void_ptr)
     /*restore the old settings*/
     tcsetattr( STDIN_FILENO, TCSANOW, &oldt);
 
+    return NULL;
+
 }
 
 Controler::~Controler(){

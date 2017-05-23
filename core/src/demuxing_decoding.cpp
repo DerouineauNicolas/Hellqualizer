@@ -6,7 +6,6 @@ static const int buffer_size=AVCODEC_MAX_AUDIO_FRAME_SIZE+ FF_INPUT_BUFFER_PADDI
 
 DemuxDecode::DemuxDecode(const char* src_file_name, HQ_Context *ctx)
 {
-    int ret = 0; //got_frame;
     m_src_filename=src_file_name;
     /* register all formats and codecs */
     av_register_all();
@@ -14,13 +13,13 @@ DemuxDecode::DemuxDecode(const char* src_file_name, HQ_Context *ctx)
     /* open input file, and allocate format context */
     if (avformat_open_input(&fmt_ctx, m_src_filename, NULL, NULL) < 0) {
         fprintf(stderr, "Could not open source file %s\n", m_src_filename);
-        exit(1);
+        exit(EXIT_FAILURE);
     }
 
     /* retrieve stream information */
     if (avformat_find_stream_info(fmt_ctx, NULL) < 0) {
         fprintf(stderr, "Could not find stream information\n");
-        exit(1);
+        exit(EXIT_FAILURE);
     }
 
 
@@ -33,14 +32,16 @@ DemuxDecode::DemuxDecode(const char* src_file_name, HQ_Context *ctx)
 
     if (!audio_stream) {
         fprintf(stderr, "Could not find audio  stream in the input, aborting\n");
-        ret = 1;
+        exit(EXIT_FAILURE);
+        //ret = 1;
         //goto end;
     }
 
     frame = av_frame_alloc();
     if (!frame) {
         fprintf(stderr, "Could not allocate frame\n");
-        ret = AVERROR(ENOMEM);
+        exit(EXIT_FAILURE);
+        //ret = AVERROR(ENOMEM);
         //goto end;
     }
 
@@ -91,17 +92,20 @@ int DemuxDecode::open_codec_context(int *stream_idx, AVCodecContext **dec_ctx, A
     if (ret < 0) {
         /*fprintf(stderr, "Could not find %s stream in input file '%s'\n",
                 av_get_media_type_string(type), m_src_filename);*/
-        printf("Could not find %s stream in input file");
+        printf("Could not find stream in input file");
         return ret;
     } else {
         stream_index = ret;
         st = fmt_ctx->streams[stream_index];
-
         /* find decoder for the stream */
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(55,28,1)
         dec = avcodec_find_decoder(st->codec->codec_id);
+#else
+        dec = avcodec_find_decoder(st->codecpar->codec_id);
+#endif
         if (!dec) {
             fprintf(stderr, "Failed to find codec\n");//,
-                    //av_get_media_type_string(type));
+            //av_get_media_type_string(type));
             return AVERROR(EINVAL);
         }
 
@@ -109,17 +113,18 @@ int DemuxDecode::open_codec_context(int *stream_idx, AVCodecContext **dec_ctx, A
         *dec_ctx = avcodec_alloc_context3(dec);
         if (!*dec_ctx) {
             fprintf(stderr, "Failed to allocate the codec context\n");//,
-                   // av_get_media_type_string(type));
+            // av_get_media_type_string(type));
             return AVERROR(ENOMEM);
         }
 
-//        /* Copy codec parameters from input stream to output codec context */
-//        if ((ret = avcodec_parameters_to_context(*dec_ctx, st->codec)) < 0) {
-//            fprintf(stderr, "Failed to copy %s codec parameters to decoder context\n");//,
-//                    //av_get_media_type_string(type));
-//            return ret;
-//        }
-
+#if LIBAVCODEC_VERSION_INT >= AV_VERSION_INT(55,28,1)
+                /* Copy codec parameters from input stream to output codec context */
+                if ((ret = avcodec_parameters_to_context(*dec_ctx, st->codecpar)) < 0) {
+                    fprintf(stderr, "Failed to copy %s codec parameters to decoder context\n");//,
+                            //av_get_media_type_string(type));
+                    return ret;
+                }
+#endif
 
         /* Init the decoders, with or without reference counting */
         av_dict_set(&opts, "refcounted_frames", refcount ? "1" : "0", 0);
@@ -128,8 +133,9 @@ int DemuxDecode::open_codec_context(int *stream_idx, AVCodecContext **dec_ctx, A
 #else
         if ((ret = avcodec_open(*dec_ctx, dec)) < 0) {
 #endif
+
             fprintf(stderr, "Failed to open codec\n");//,
-                   // av_get_media_type_string(type));
+            // av_get_media_type_string(type));
             return ret;
         }
         *stream_idx = stream_index;

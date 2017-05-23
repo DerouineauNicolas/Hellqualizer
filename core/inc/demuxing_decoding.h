@@ -16,7 +16,7 @@ extern "C" {
 #if ((LIBAVCODEC_VERSION_MAJOR == 52) && (LIBAVCODEC_VERSION_MINOR <= 20)) || (LIBAVCODEC_VERSION_MAJOR < 52)
 #undef USE_AVCODEC2
 #else
-#define USE_AVCODEC2	1
+#define USE_AVCODEC2   1
 #endif
 
 
@@ -25,6 +25,7 @@ extern "C" {
 #elif (LIBAVCODEC_VERSION_MAJOR >= 54) && (LIBAVCODEC_VERSION_MINOR >= 35)
 #define USE_AVCTX3
 #endif
+
 
 
 #include <pthread.h>
