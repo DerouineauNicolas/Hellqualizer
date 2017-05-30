@@ -14,18 +14,18 @@
 #include <stdlib.h>
 #include <alsa/asoundlib.h>
 #include <record.h>
-	      
-RECORDER::RECORDER(const char* src_file_name, HQ_Context *ctx)
-{
-  int i;
-  int err;
-  char *buffer;
-  int buffer_frames = 128;
-  unsigned int rate = 44100;
-  snd_pcm_t *capture_handle;
-  snd_pcm_hw_params_t *hw_params;
-	snd_pcm_format_t format = SND_PCM_FORMAT_S16_LE;
 
+
+static unsigned int rate = 44100;
+static snd_pcm_t *capture_handle;
+static snd_pcm_hw_params_t *hw_params;
+static snd_pcm_format_t format = SND_PCM_FORMAT_S16;
+int i;
+int err;
+char *buffer;
+	      
+RECORDER::RECORDER(const char* device_name, HQ_Context *ctx)
+{
   if ((err = snd_pcm_open (&capture_handle,"default", SND_PCM_STREAM_CAPTURE, 0)) < 0) {
     fprintf (stderr, "cannot open audio device %s (%s)\n", 
              "default",
@@ -107,23 +107,13 @@ RECORDER::RECORDER(const char* src_file_name, HQ_Context *ctx)
 
   fprintf(stdout, "buffer allocated\n");
 
-  for (i = 0; i < 10; ++i) {
-    if ((err = snd_pcm_readi (capture_handle, buffer, buffer_frames)) != buffer_frames) {
-      fprintf (stderr, "read from audio interface failed (%s)\n",
-               err, snd_strerror (err));
-      exit (1);
-    }
-    fprintf(stdout, "read %d done\n", i);
-  }
+  m_mutex=&ctx->m_mutex_decode_to_process;//mutex;
+  m_signal=&ctx->m_signal_decode_to_process;
+  m_buffer=ctx->Buffer_decode_process;
 
-  free(buffer);
+  ctx->Sampling_rate=rate;
 
-  fprintf(stdout, "buffer freed\n");
-	
-  snd_pcm_close (capture_handle);
-  fprintf(stdout, "audio interface closed\n");
-
-  exit (0);
+  //exit (0);
 }
 
 void RECORDER::InternalThreadEntry(){
@@ -138,12 +128,43 @@ RECORDER::~RECORDER(){
 
 void *RECORDER::record_thread(void *x_void_ptr)
 {
+    int buffer_frames = 8192;
+    unsigned char *tmp=NULL;
+    static int first_time=1;
+    int current_buffer_size=0;
 
     while(1){
-    ;
+        if ((err = snd_pcm_readi (capture_handle, buffer, buffer_frames)) != buffer_frames) {
+          fprintf (stderr, "read from audio interface failed (%s)\n",
+                   err, snd_strerror (err));
+          exit (1);
+        }
+        tmp=(unsigned char*)buffer;
+
+        pthread_mutex_lock(m_mutex);
+        m_buffer->Write(tmp, buffer_frames);
+        pthread_mutex_unlock(m_mutex);
+//        if(first_time){
+//            pthread_mutex_lock(m_mutex);
+//            current_buffer_size=m_buffer->GetReadAvail();
+//            pthread_mutex_lock(m_mutex);
+//            printf("[Record] Buff size =  %d",current_buffer_size);
+//            if(current_buffer_size<44100)
+//                continue;
+//            else
+//                first_time=0;
+
+//        }
+        pthread_cond_signal(m_signal);
+        //fprintf(stdout, "read %d done\n", i);
     }
 
-    //delete processor;
+    free(buffer);
+
+    fprintf(stdout, "buffer freed\n");
+
+    snd_pcm_close (capture_handle);
+    fprintf(stdout, "audio interface closed\n");
 
     return NULL;
 }

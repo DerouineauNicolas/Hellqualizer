@@ -6,6 +6,7 @@
 #include <string.h>
 #include <math.h>
 #include <stdint.h>
+#include <record.h>
 #include <Hellqualizer.h>
 
 
@@ -49,6 +50,7 @@ int main (int argc, char **argv)
 
     DemuxDecode *decoder=new DemuxDecode(src_filename,&Ctx);
     Rendering *renderer=new Rendering(&Ctx);
+    RECORDER *recorder=new RECORDER("default",&Ctx);
 
 
 #ifdef HQ_GUI
@@ -57,7 +59,8 @@ int main (int argc, char **argv)
     Controler *control=new Controler(src_filename, &Ctx);
 #endif
 
-    decoder->StartInternalThread();
+    //decoder->StartInternalThread();
+    recorder->StartInternalThread();
     renderer->StartInternalThread();
 
 #ifdef HQ_GUI
@@ -66,7 +69,8 @@ int main (int argc, char **argv)
     control->StartInternalThread();
 #endif
 
-    decoder->WaitForInternalThreadToExit();
+    //decoder->WaitForInternalThreadToExit();
+    recorder->WaitForInternalThreadToExit();
     renderer->WaitForInternalThreadToExit();
 
 #ifdef HQ_GUI
