@@ -20,9 +20,8 @@ static unsigned int rate = 44100;
 static snd_pcm_t *capture_handle;
 static snd_pcm_hw_params_t *hw_params;
 static snd_pcm_format_t format = SND_PCM_FORMAT_S16;
-int i;
-int err;
-char *buffer;
+static int buffer_frames = 128;
+static char *buffer;
 	      
 RECORDER::RECORDER(const char* device_name, HQ_Context *ctx)
 {
@@ -103,7 +102,7 @@ RECORDER::RECORDER(const char* device_name, HQ_Context *ctx)
 
   fprintf(stdout, "audio interface prepared\n");
 
-  buffer = (char*)malloc(128 * snd_pcm_format_width(format) / 8 * 2);
+  buffer = (char*)malloc(buffer_frames * snd_pcm_format_width(format) / 8 * 2);
 
   fprintf(stdout, "buffer allocated\n");
 
@@ -117,6 +116,9 @@ RECORDER::RECORDER(const char* device_name, HQ_Context *ctx)
 }
 
 void RECORDER::InternalThreadEntry(){
+    //_thread
+    //_thread
+
     this->record_thread(NULL);
     //return;
 }
@@ -128,10 +130,12 @@ RECORDER::~RECORDER(){
 
 void *RECORDER::record_thread(void *x_void_ptr)
 {
-    int buffer_frames = 8192;
+
     unsigned char *tmp=NULL;
     static int first_time=1;
     int current_buffer_size=0;
+    int i;
+    int err;
 
     while(1){
         if ((err = snd_pcm_readi (capture_handle, buffer, buffer_frames)) != buffer_frames) {
@@ -144,17 +148,6 @@ void *RECORDER::record_thread(void *x_void_ptr)
         pthread_mutex_lock(m_mutex);
         m_buffer->Write(tmp, buffer_frames);
         pthread_mutex_unlock(m_mutex);
-//        if(first_time){
-//            pthread_mutex_lock(m_mutex);
-//            current_buffer_size=m_buffer->GetReadAvail();
-//            pthread_mutex_lock(m_mutex);
-//            printf("[Record] Buff size =  %d",current_buffer_size);
-//            if(current_buffer_size<44100)
-//                continue;
-//            else
-//                first_time=0;
-
-//        }
         pthread_cond_signal(m_signal);
         //fprintf(stdout, "read %d done\n", i);
     }
