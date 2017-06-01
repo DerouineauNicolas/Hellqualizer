@@ -51,8 +51,11 @@ int main (int argc, char **argv)
 
     init_Hellqualizer(&Ctx);
 
-    if(!strcmp(argv[1],"-alsa"))
+    if(!strcmp(argv[1],"-alsa")){
+        Ctx.channels=2;
         Ctx.is_realtime=1;
+        Ctx.Sampling_rate=44100;
+    }
     else
         src_filename = argv[1];
 
