@@ -28,6 +28,7 @@ static void init_Hellqualizer(HQ_Context *Ctx){
     Ctx->proc_opt.GAIN[3]=1.0;
     Ctx->proc_opt.GAIN[4]=1.0;
     Ctx->state=PLAY;
+    Ctx->is_realtime=0;
 }
 
 static void Destroy_Hellqualizer(HQ_Context *Ctx){
@@ -39,19 +40,28 @@ static void Destroy_Hellqualizer(HQ_Context *Ctx){
 int main (int argc, char **argv)
 {
     HQ_Context Ctx;
+    DemuxDecode *decoder;
+    RECORDER *recorder;
+    char *src_filename=NULL;
 
     if ( (argc <2)) {
         fprintf(stderr, "Wrong Usage \n");
         exit(EXIT_SUCCESS);
     }
-    char *src_filename = argv[1];
 
     init_Hellqualizer(&Ctx);
 
-    DemuxDecode *decoder=new DemuxDecode(src_filename,&Ctx);
-    Rendering *renderer=new Rendering(&Ctx);
-    RECORDER *recorder=new RECORDER("default",&Ctx);
+    if(!strcmp(argv[1],"-alsa"))
+        Ctx.is_realtime=1;
+    else
+        src_filename = argv[1];
 
+    if(Ctx.is_realtime)
+        recorder=new RECORDER("default",&Ctx);
+    else
+        decoder =new DemuxDecode(src_filename,&Ctx);
+
+    Rendering *renderer=new Rendering(&Ctx);
 
 #ifdef HQ_GUI
     GUI *gui_control=new GUI(src_filename,&Ctx);
@@ -59,8 +69,11 @@ int main (int argc, char **argv)
     Controler *control=new Controler(src_filename, &Ctx);
 #endif
 
-    //decoder->StartInternalThread();
-    recorder->StartInternalThread();
+    if(Ctx.is_realtime)
+        recorder->StartInternalThread();
+    else
+        decoder->StartInternalThread();
+
     renderer->StartInternalThread();
 
 #ifdef HQ_GUI
@@ -69,8 +82,11 @@ int main (int argc, char **argv)
     control->StartInternalThread();
 #endif
 
-    //decoder->WaitForInternalThreadToExit();
-    recorder->WaitForInternalThreadToExit();
+    if(Ctx.is_realtime)
+        recorder->WaitForInternalThreadToExit();
+    else
+        decoder->WaitForInternalThreadToExit();
+
     renderer->WaitForInternalThreadToExit();
 
 #ifdef HQ_GUI

@@ -192,7 +192,7 @@ void *Rendering::play_thread(void *x_void_ptr)
     while(1){
         if(m_ctx->state==PLAY){
             pthread_mutex_lock(m_mutex);
-            printf("RENDER: %d \n",m_buffer_decode_process->GetReadAvail());
+            //printf("RENDER: %d \n",m_buffer_decode_process->GetReadAvail());
             while(m_buffer_decode_process->GetReadAvail()<output_size){
                 if(m_ctx->state==END_OF_DECODING)
                     break;

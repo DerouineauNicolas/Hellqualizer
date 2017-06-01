@@ -22,6 +22,7 @@ static snd_pcm_hw_params_t *hw_params;
 static snd_pcm_format_t format = SND_PCM_FORMAT_S16;
 static int buffer_frames = 128;
 static char *buffer;
+static int err;
 	      
 RECORDER::RECORDER(const char* device_name, HQ_Context *ctx)
 {
@@ -135,7 +136,7 @@ void *RECORDER::record_thread(void *x_void_ptr)
     static int first_time=1;
     int current_buffer_size=0;
     int i;
-    int err;
+
 
     while(1){
         if ((err = snd_pcm_readi (capture_handle, buffer, buffer_frames)) != buffer_frames) {

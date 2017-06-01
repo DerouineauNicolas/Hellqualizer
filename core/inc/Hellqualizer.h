@@ -24,6 +24,7 @@ typedef struct HQ_Context{
 
     int Sampling_rate;
     int channels;
+    int is_realtime;
     /*TBD
     int sample_rate;*/
 
