@@ -3,12 +3,17 @@
 Intro
 -------------------
 
-This program is decoding, filtering and playing encoded audio streams in real time.
+This program is decoding/recording, filtering and playing encoded audio streams in real time.
 
 Execution
 -------------------
+For encoded streams (If a video is provided, only the audio track will be processed)
  
 	./Hellqualizer ~/musique/some_music.mp4
+
+For realtime alsa input (Experimental support, default alsa device is selected)
+
+ 	./Hellqualizer -alsa
 
 EQ can be controlled through the keyboard at runtime:
 
@@ -36,7 +41,7 @@ Compilation
 
 To compile it, you need the following depandancies:
 
-sudo apt-get install libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libavdevice-dev libasound2-dev
+ 	sudo apt-get install libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libavdevice-dev libasound2-dev
 
 First, clone the project in $PROJECT_DIR, then:
 
