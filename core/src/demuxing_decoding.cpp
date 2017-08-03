@@ -1,5 +1,7 @@
 #include <demuxing_decoding.h>
+#ifndef WIN32
 #include <unistd.h>
+#endif
 
 static const int buffer_size=AVCODEC_MAX_AUDIO_FRAME_SIZE+ FF_INPUT_BUFFER_PADDING_SIZE;
 

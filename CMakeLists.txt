@@ -28,12 +28,10 @@ INCLUDE_DIRECTORIES(/usr/local/include/)
 link_directories(/usr/local/lib/)
 INCLUDE_DIRECTORIES(/usr/include/)
 link_directories(/usr/lib/)
-endif (UNIX)
-
-if (WIN32)
+elseif (WIN32)
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/extra_lib/include/)
 link_directories(${PROJECT_SOURCE_DIR}/extra_lib/lib/)
-endif (WIN32)
+endif ()
 
 
 
@@ -45,7 +43,7 @@ set(my_SOURCES
     ${PROJECT_SOURCE_DIR}/core/src/demuxing_decoding.cpp
 )
 
-
+if (UNIX)
 if(RENDER_WITH_ALSA)
 
   set(my_SOURCES ${my_SOURCES}
@@ -58,6 +56,10 @@ else()
     set(my_SOURCES ${my_SOURCES}
       ${PROJECT_SOURCE_DIR}/core/src/rendering_ao.cpp)
 
+endif()
+elseif (WIN32)
+    set(my_SOURCES ${my_SOURCES}
+      ${PROJECT_SOURCE_DIR}/core/src/rendering_win32.cpp)
 endif()
 
 
@@ -96,7 +98,7 @@ if(GUI)
 	GLEW)
 endif()
 
-
+if (UNIX)
 if(RENDER_WITH_ALSA)
 
     set(dependancies ${dependancies}
@@ -108,6 +110,9 @@ else()
                       ao)
 
 endif()
+elseif (WIN32)
+endif()
+
 
 
 
