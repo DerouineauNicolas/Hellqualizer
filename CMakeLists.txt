@@ -3,7 +3,7 @@ set (CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR}/DEBIAN/usr/bin)
 PROJECT(Hellqualizer)
 
 set(GUI OFF)
-set(RENDER_WITH_ALSA OFF)
+set(RENDER_WITH_ALSA ON)
 set(PROFILING OFF)
 
 if(GUI)
@@ -49,7 +49,9 @@ set(my_SOURCES
 if(RENDER_WITH_ALSA)
 
   set(my_SOURCES ${my_SOURCES}
-      ${PROJECT_SOURCE_DIR}/core/src/rendering_alsa.cpp)
+      ${PROJECT_SOURCE_DIR}/core/src/rendering_alsa.cpp
+      ${PROJECT_SOURCE_DIR}/core/src/record.cpp
+  )
 
 else()
 
@@ -81,8 +83,8 @@ set(dependancies
     avutil
     avformat
     avcodec
-    swresample
-    swscale
+    #swresample
+    #swscale
     m
     pthread
 )

@@ -149,8 +149,8 @@ Rendering::Rendering( HQ_Context *ctx){
     channels=ctx->channels;
 
     if ((err = snd_pcm_open (&handle, "default", SND_PCM_STREAM_PLAYBACK, 0)) < 0) {
-        fprintf (stderr, "cannot open audio device %s (%s)\n");
-        exit (1);
+        fprintf (stderr, "cannot open audio device \n");
+        exit (EXIT_FAILURE);
     }
 
     if ((err = set_hwparams(handle, hwparams, SND_PCM_ACCESS_RW_INTERLEAVED)) < 0) {
@@ -232,6 +232,8 @@ void *Rendering::play_thread(void *x_void_ptr)
     }
 
     delete processor;
+
+    return NULL;
 
     free(samples);
 }
