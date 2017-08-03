@@ -110,7 +110,9 @@ else()
                       ao)
 
 endif()
-elseif (WIN32)
+elseif (WIN32) 
+    set(dependancies ${dependancies}
+                      Winmm)
 endif()
 
 

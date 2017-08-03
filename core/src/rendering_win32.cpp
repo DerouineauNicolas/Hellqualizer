@@ -1,4 +1,6 @@
 #include <rendering.h>
+#include <mmdeviceapi.h>
+#include <Audioclient.h>
 
 //-----------------------------------------------------------
 // Play an audio stream on the default audio rendering
