@@ -2,7 +2,7 @@
 #define __PROCESSING_H
 
 #include <Hellqualizer.h>
-
+#define HAVE_STRUCT_TIMESPEC
 #include <pthread.h>
 #include <ring_buffer.h>
 #include <processing.h>

@@ -8,6 +8,7 @@ extern "C" {
 #include <libavformat/avformat.h>
 }
 
+#define HAVE_STRUCT_TIMESPEC
 #include <pthread.h>
 #include <ring_buffer.h>
 #include <threadclass.h>

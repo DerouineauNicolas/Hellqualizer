@@ -3,6 +3,7 @@
 #ifndef _HELLQUALIZER_H
 #define _HELLQUALIZER_H
 
+#define HAVE_STRUCT_TIMESPEC
 #include <pthread.h>
 #include <ring_buffer.h>
 

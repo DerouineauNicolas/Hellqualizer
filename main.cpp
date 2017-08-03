@@ -1,6 +1,11 @@
 #include <ring_buffer.h>
+#define HAVE_STRUCT_TIMESPEC
 #include <pthread.h>
+#ifdef WIN32
+//#include <unistd_win32.h>
+#else
 #include <unistd.h>
+#endif
 #include <demuxing_decoding.h>
 #include <rendering.h>
 #include <string.h>

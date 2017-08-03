@@ -1,6 +1,7 @@
 #ifndef __CONTROLER_H
 #define __CONTROLER_H
 
+#define HAVE_STRUCT_TIMESPEC
 #include <pthread.h>
 #include <threadclass.h>
 #include <processing.h>

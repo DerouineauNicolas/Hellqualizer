@@ -22,12 +22,20 @@ endif()
 
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/core/inc)
 
-
+if (UNIX)
 #FFMPEG is assumed to be in /usr/local/*
 INCLUDE_DIRECTORIES(/usr/local/include/)
 link_directories(/usr/local/lib/)
 INCLUDE_DIRECTORIES(/usr/include/)
 link_directories(/usr/lib/)
+endif (UNIX)
+
+if (WIN32)
+INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/extra_lib/include/)
+link_directories(${PROJECT_SOURCE_DIR}/extra_lib/lib/)
+endif (WIN32)
+
+
 
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -D__STDC_CONSTANT_MACROS ")
 
