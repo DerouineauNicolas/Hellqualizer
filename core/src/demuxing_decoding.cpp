@@ -258,6 +258,11 @@ void *DemuxDecode::decode_thread(void *x_void_ptr)
             //if(log_level)
             //printf("Input Buffer overflow !!! \n");
         }
+        else {
+            usleep(1000);
+            //printf("#");
+            
+        }
     }
 
     /* the function must return something - NULL will do */

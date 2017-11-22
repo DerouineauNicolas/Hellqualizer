@@ -96,7 +96,7 @@ void *Controler::control_thread(void *x_void_ptr)
             else
             {
                 printf("Enable processing \n");
-                m_ctx->proc_opt.do_process=0;
+                m_ctx->proc_opt.do_process=1;
             }    
             break;
         default:
