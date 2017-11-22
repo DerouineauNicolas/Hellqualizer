@@ -42,7 +42,7 @@ if(RENDER_WITH_ALSA)
 
   set(my_SOURCES ${my_SOURCES}
       ${PROJECT_SOURCE_DIR}/core/src/rendering_alsa.cpp
-      ${PROJECT_SOURCE_DIR}/core/src/record.cpp
+      #${PROJECT_SOURCE_DIR}/core/src/record.cpp
   )
 
 else()

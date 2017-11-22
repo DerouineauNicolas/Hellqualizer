@@ -11,10 +11,6 @@ For encoded streams (If a video is provided, only the audio track will be proces
  
 	./Hellqualizer ~/musique/some_music.mp4
 
-For realtime alsa input (Experimental support, default alsa device is selected)
-
- 	./Hellqualizer -alsa
-
 EQ can be controlled through the keyboard at runtime:
 
 a - q : Increase/Decrease gain between 0 - 2000 Hz

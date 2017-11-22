@@ -41,7 +41,6 @@ int main (int argc, char **argv)
 {
     HQ_Context Ctx;
     DemuxDecode *decoder;
-    RECORDER *recorder;
     char *src_filename=NULL;
 
     if ( (argc <2)) {
@@ -51,18 +50,10 @@ int main (int argc, char **argv)
 
     init_Hellqualizer(&Ctx);
 
-    if(!strcmp(argv[1],"-alsa")){
-        Ctx.channels=2;
-        Ctx.is_realtime=1;
-        Ctx.Sampling_rate=44100;
-    }
-    else
-        src_filename = argv[1];
+    src_filename = argv[1];
 
-    if(Ctx.is_realtime)
-        recorder=new RECORDER("default",&Ctx);
-    else
-        decoder =new DemuxDecode(src_filename,&Ctx);
+
+    decoder =new DemuxDecode(src_filename,&Ctx);
 
     Rendering *renderer=new Rendering(&Ctx);
 
@@ -72,10 +63,7 @@ int main (int argc, char **argv)
     Controler *control=new Controler(src_filename, &Ctx);
 #endif
 
-    if(Ctx.is_realtime)
-        recorder->StartInternalThread();
-    else
-        decoder->StartInternalThread();
+    decoder->StartInternalThread();
 
     renderer->StartInternalThread();
 
@@ -85,10 +73,8 @@ int main (int argc, char **argv)
     control->StartInternalThread();
 #endif
 
-    if(Ctx.is_realtime)
-        recorder->WaitForInternalThreadToExit();
-    else
-        decoder->WaitForInternalThreadToExit();
+
+    decoder->WaitForInternalThreadToExit();
 
     renderer->WaitForInternalThreadToExit();
 
