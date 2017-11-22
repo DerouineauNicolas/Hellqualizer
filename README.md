@@ -3,7 +3,7 @@
 Intro
 -------------------
 
-This program is decoding/recording, filtering and playing encoded audio streams in real time.
+This program is decoding, filtering and playing encoded audio streams in real time.
 
 Execution
 -------------------
