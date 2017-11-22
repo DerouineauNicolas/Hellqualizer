@@ -120,7 +120,7 @@ int DemuxDecode::open_codec_context(int *stream_idx, AVCodecContext **dec_ctx, A
 #if LIBAVCODEC_VERSION_INT >= AV_VERSION_INT(55,28,1)
                 /* Copy codec parameters from input stream to output codec context */
                 if ((ret = avcodec_parameters_to_context(*dec_ctx, st->codecpar)) < 0) {
-                    fprintf(stderr, "Failed to copy %s codec parameters to decoder context\n");//,
+                    fprintf(stderr, "Failed to copy codec parameters to decoder context\n");//,
                             //av_get_media_type_string(type));
                     return ret;
                 }

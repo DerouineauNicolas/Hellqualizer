@@ -133,15 +133,15 @@ void *RECORDER::record_thread(void *x_void_ptr)
 {
 
     unsigned char *tmp=NULL;
-    static int first_time=1;
+    /*static int first_time=1;
     int current_buffer_size=0;
-    int i;
+    int i;*/
 
 
     while(1){
         if ((err = snd_pcm_readi (capture_handle, buffer, buffer_frames)) != buffer_frames) {
           fprintf (stderr, "read from audio interface failed (%s)\n",
-                   err, snd_strerror (err));
+                    snd_strerror (err));
           exit (1);
         }
         tmp=(unsigned char*)buffer;
