@@ -165,9 +165,9 @@ Rendering::Rendering( HQ_Context *ctx){
 
 
 
-    m_mutex=&ctx->m_mutex_decode_to_process;
-    m_signal=&ctx->m_signal_decode_to_process;
-    m_buffer_input=ctx->Buffer_decode_process;
+    m_mutex=&ctx->m_mutex_process_to_render;
+    m_signal=&ctx->m_signal_process_to_render;
+    m_buffer_input=ctx->Buffer_process_render;
     m_ctx=ctx;
 
 }
@@ -200,7 +200,9 @@ void *Rendering::play_thread(void *x_void_ptr)
             if(m_ctx->state==END_OF_DECODING)
                 break;
             m_buffer_input->Read(samples,output_size);
+            
             //processor->process(&samples,output_size, m_ctx);
+            
 
             samples_out=(signed short*)samples;
             //            for(int i=0;i<(output_size/4);i++)
@@ -222,6 +224,8 @@ void *Rendering::play_thread(void *x_void_ptr)
                 //exit (1);
             }
             pthread_mutex_unlock(m_mutex);
+            
+            
 
         }
         else{

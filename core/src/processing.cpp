@@ -40,7 +40,7 @@ void FIR_FLOAT_1Ch::firMoveProcSamples( int length )
 }
 
 
-int size_of_processing=1024;
+int size_of_processing=2048;
 
 Processing::Processing(HQ_Context *ctx){
     right_ch_in=(uint16_t*)malloc((size_of_processing/2)*sizeof(uint16_t));
@@ -84,7 +84,7 @@ void *Processing::processing_thread(void *x_void_ptr)
     while(1){
         if(m_ctx->state==PLAY){
             pthread_mutex_lock(m_mutex_input);
-            printf("INPUT_PROCESSING: %d \n",m_buffer_input->GetReadAvail());
+            //printf("INPUT_PROCESSING: %d \n",m_buffer_input->GetReadAvail());
             while(m_buffer_input->GetReadAvail()<size_of_processing){
                 if(m_ctx->state==END_OF_DECODING)
                     break;
@@ -99,12 +99,15 @@ void *Processing::processing_thread(void *x_void_ptr)
             
             
             pthread_mutex_lock(m_mutex_output);
-            printf("OUTPUT_PROCESSING: %d \n",m_buffer_output->GetWriteAvail());
+            //printf("PROCESSING_OUTPUT_READ_AVAILABLE: %d \n",m_buffer_output->GetWriteAvail());
             if(m_ctx->state==END_OF_DECODING)
                 break;
             if(m_buffer_output->GetWriteAvail()>(size_of_processing)){
                 m_buffer_output->Write(samples, size_of_processing);
                 pthread_cond_signal(m_signal_output);
+            }
+            else{
+                printf("Process: Not enough spacein output buffer \n");
             }
             pthread_mutex_unlock(m_mutex_output);
             //

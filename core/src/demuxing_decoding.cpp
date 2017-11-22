@@ -209,6 +209,7 @@ void DemuxDecode::decode_audio_packet(int *got_frame, int *bytes_read,int cached
 
         pthread_mutex_lock(m_mutex);
         m_buffer->Write(samples, 2*audio_dec_ctx->channels*frame->nb_samples);
+        //printf("writing %d samples \n",2*audio_dec_ctx->channels*frame->nb_samples);
         pthread_mutex_unlock(m_mutex);
         pthread_cond_signal(m_signal);
     }
@@ -228,8 +229,8 @@ void *DemuxDecode::decode_thread(void *x_void_ptr)
         pthread_mutex_lock(m_mutex);
         got_space=m_buffer->GetWriteAvail();
         pthread_mutex_unlock(m_mutex);
-        //printf("got_space= %d",got_space );
-        if(got_space>5000){
+        //printf("got_space= %d \n",got_space );
+        if(got_space>44100){/*Initial buffering of 1s at 44100KHz*/
             if(av_read_frame(fmt_ctx, &pkt) >= 0){
                 /*We decode only audio, skipping other packets*/
                 if(pkt.stream_index==audio_stream_idx){
