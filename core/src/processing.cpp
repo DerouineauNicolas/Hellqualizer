@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <processing.h>
+#include <unistd.h>
 #include <float_coeff.h>
 
 #ifdef HQ_PROFILING
@@ -39,23 +40,88 @@ void FIR_FLOAT_1Ch::firMoveProcSamples( int length )
 }
 
 
-Processing::Processing(int size){
-    right_ch_in=(uint16_t*)malloc((size/2)*sizeof(uint16_t));
-    left_ch_in=(uint16_t*)malloc((size/2)*sizeof(uint16_t));
-    right_ch_out=(int16_t*)malloc((size/2)*sizeof(int16_t));
-    left_ch_out=(int16_t*)malloc((size/2)*sizeof(int16_t));
+int size_of_processing=1024;
 
-    f_left_ch_in=(double*)malloc((size/2)*sizeof(double));
-    f_left_ch_out_tmp=(double*)malloc(NUM_EQ_BANDS*(size/2)*sizeof(double));
-    f_left_ch_out=(double*)malloc((size/2)*sizeof(double));
+Processing::Processing(HQ_Context *ctx){
+    right_ch_in=(uint16_t*)malloc((size_of_processing/2)*sizeof(uint16_t));
+    left_ch_in=(uint16_t*)malloc((size_of_processing/2)*sizeof(uint16_t));
+    right_ch_out=(int16_t*)malloc((size_of_processing/2)*sizeof(int16_t));
+    left_ch_out=(int16_t*)malloc((size_of_processing/2)*sizeof(int16_t));
 
-    f_right_ch_in=(double*)malloc((size/2)*sizeof(double));
-    f_right_ch_out_tmp=(double*)malloc(NUM_EQ_BANDS*(size/2)*sizeof(double));
-    f_right_ch_out=(double*)malloc((size/2)*sizeof(double));
+    f_left_ch_in=(double*)malloc((size_of_processing/2)*sizeof(double));
+    f_left_ch_out_tmp=(double*)malloc(NUM_EQ_BANDS*(size_of_processing/2)*sizeof(double));
+    f_left_ch_out=(double*)malloc((size_of_processing/2)*sizeof(double));
+
+    f_right_ch_in=(double*)malloc((size_of_processing/2)*sizeof(double));
+    f_right_ch_out_tmp=(double*)malloc(NUM_EQ_BANDS*(size_of_processing/2)*sizeof(double));
+    f_right_ch_out=(double*)malloc((size_of_processing/2)*sizeof(double));
 
 
     right_FIR=new FIR_FLOAT_1Ch();
     left_FIR=new FIR_FLOAT_1Ch();
+
+    m_mutex_input=&ctx->m_mutex_decode_to_process;
+    m_signal_input=&ctx->m_signal_decode_to_process;
+    m_buffer_input=ctx->Buffer_decode_process;
+    m_mutex_output=&ctx->m_mutex_process_to_render;
+    m_signal_output=&ctx->m_signal_process_to_render;
+    m_buffer_output=ctx->Buffer_process_render;
+
+    m_ctx=ctx;
+
+}
+
+void *Processing::processing_thread(void *x_void_ptr)
+{
+
+    //Processing* processor=new Processing(output_size);
+
+    uint8_t *samples;
+    samples=(uint8_t*)malloc(size_of_processing*sizeof(uint8_t));
+
+    //signed short *samples_out;
+
+    while(1){
+        if(m_ctx->state==PLAY){
+            pthread_mutex_lock(m_mutex_input);
+            printf("INPUT_PROCESSING: %d \n",m_buffer_input->GetReadAvail());
+            while(m_buffer_input->GetReadAvail()<size_of_processing){
+                if(m_ctx->state==END_OF_DECODING)
+                    break;
+                pthread_cond_wait(m_signal_input, m_mutex_input);
+            }
+            if(m_ctx->state==END_OF_DECODING)
+                break;
+            m_buffer_input->Read(samples,size_of_processing);
+            pthread_mutex_unlock(m_mutex_input);
+            
+            this->process(&samples,size_of_processing, m_ctx);
+            
+            
+            pthread_mutex_lock(m_mutex_output);
+            printf("OUTPUT_PROCESSING: %d \n",m_buffer_output->GetWriteAvail());
+            if(m_ctx->state==END_OF_DECODING)
+                break;
+            if(m_buffer_output->GetWriteAvail()>(size_of_processing)){
+                m_buffer_output->Write(samples, size_of_processing);
+                pthread_cond_signal(m_signal_output);
+            }
+            pthread_mutex_unlock(m_mutex_output);
+            //
+
+        }
+        else{
+            usleep(1000000);
+        }
+
+    }
+
+    free(samples);
+}
+
+void Processing::InternalThreadEntry(){
+    this->processing_thread(NULL);
+    //return;
 }
 
 Processing::~Processing(){

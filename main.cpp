@@ -8,6 +8,7 @@
 #include <stdint.h>
 #include <record.h>
 #include <Hellqualizer.h>
+#include <processing.h>
 
 
 #ifdef HQ_GUI
@@ -19,8 +20,11 @@
 static void init_Hellqualizer(HQ_Context *Ctx){
     pthread_cond_init (&Ctx->m_signal_decode_to_process,NULL);
     pthread_mutex_init(&Ctx->m_mutex_decode_to_process,NULL);
+    pthread_cond_init (&Ctx->m_signal_process_to_render,NULL);
+    pthread_mutex_init(&Ctx->m_mutex_process_to_render,NULL);
 
     Ctx->Buffer_decode_process=new RingBuffer(44100*2);
+    Ctx->Buffer_process_render=new RingBuffer(44100*2);
     Ctx->proc_opt.do_process=1;
     Ctx->proc_opt.GAIN[0]=1.0;
     Ctx->proc_opt.GAIN[1]=1.0;
@@ -33,8 +37,11 @@ static void init_Hellqualizer(HQ_Context *Ctx){
 
 static void Destroy_Hellqualizer(HQ_Context *Ctx){
     delete(Ctx->Buffer_decode_process);
+    delete(Ctx->Buffer_process_render);
     pthread_cond_destroy(&Ctx->m_signal_decode_to_process);
     pthread_mutex_destroy(&Ctx->m_mutex_decode_to_process);
+    pthread_cond_destroy(&Ctx->m_signal_process_to_render);
+    pthread_mutex_destroy(&Ctx->m_mutex_process_to_render);
 }
 
 int main (int argc, char **argv)
@@ -56,6 +63,7 @@ int main (int argc, char **argv)
     decoder =new DemuxDecode(src_filename,&Ctx);
 
     Rendering *renderer=new Rendering(&Ctx);
+    Processing *processor=new Processing(&Ctx);
 
 #ifdef HQ_GUI
     GUI *gui_control=new GUI(src_filename,&Ctx);
@@ -64,8 +72,8 @@ int main (int argc, char **argv)
 #endif
 
     decoder->StartInternalThread();
-
     renderer->StartInternalThread();
+    processor->StartInternalThread();
 
 #ifdef HQ_GUI
     gui_control->StartInternalThread();
@@ -87,6 +95,8 @@ int main (int argc, char **argv)
 
     delete decoder;
     delete renderer;
+    delete processor;
+    
 #ifdef HQ_GUI
     delete gui_control;
 #else
