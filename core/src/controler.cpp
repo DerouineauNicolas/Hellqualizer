@@ -88,7 +88,16 @@ void *Controler::control_thread(void *x_void_ptr)
             }
             break;
         case 'x':
-            m_ctx->proc_opt.do_process=(m_ctx->proc_opt.do_process==1)?0:1;
+            //m_ctx->proc_opt.do_process=(m_ctx->proc_opt.do_process==1)?0:1;
+            if(m_ctx->proc_opt.do_process){
+                printf("Disable processing \n");
+                m_ctx->proc_opt.do_process=0;
+            }
+            else
+            {
+                printf("Enable processing \n");
+                m_ctx->proc_opt.do_process=0;
+            }    
             break;
         default:
             break;
