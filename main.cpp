@@ -1,11 +1,5 @@
-#include <ring_buffer.h>
-#include <pthread.h>
-#include <unistd.h>
 #include <demuxing_decoding.h>
 #include <rendering.h>
-#include <string.h>
-#include <math.h>
-#include <stdint.h>
 #include <record.h>
 #include <Hellqualizer.h>
 #include <processing.h>
