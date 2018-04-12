@@ -17,7 +17,7 @@
 #include <controler.h>
 #endif
 
-static void init_Hellqualizer(HQ_Context *Ctx){
+static void InitHellqualizer(HQ_Context *Ctx){
     pthread_cond_init (&Ctx->m_signal_decode_to_process,NULL);
     pthread_mutex_init(&Ctx->m_mutex_decode_to_process,NULL);
     pthread_cond_init (&Ctx->m_signal_process_to_render,NULL);
@@ -35,7 +35,7 @@ static void init_Hellqualizer(HQ_Context *Ctx){
     Ctx->is_realtime=0;
 }
 
-static void Destroy_Hellqualizer(HQ_Context *Ctx){
+static void DestroyHellqualizer(HQ_Context *Ctx){
     delete(Ctx->Buffer_decode_process);
     delete(Ctx->Buffer_process_render);
     pthread_cond_destroy(&Ctx->m_signal_decode_to_process);
@@ -55,7 +55,7 @@ int main (int argc, char **argv)
         exit(EXIT_SUCCESS);
     }
 
-    init_Hellqualizer(&Ctx);
+    InitHellqualizer(&Ctx);
 
     src_filename = argv[1];
 
@@ -103,6 +103,6 @@ int main (int argc, char **argv)
     delete control;
 #endif
 
-    Destroy_Hellqualizer(&Ctx);
+    DestroyHellqualizer(&Ctx);
 
 }
