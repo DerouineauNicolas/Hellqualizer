@@ -14,7 +14,7 @@ ffmpeg:
 
 	git clone https://git.ffmpeg.org/ffmpeg.git ffmpeg
 
-	git checkout remotes/origin/release/2.0
+	git checkout remotes/origin/release/2.8
 
 	./configure --enable-shared --disable-static
 
