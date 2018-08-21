@@ -5,6 +5,32 @@ Intro
 
 This program is decoding, filtering and playing encoded audio streams in real time.
 
+Compilation
+-------------------
+
+To compile it, you need the following depandancies:
+
+ffmpeg:
+
+	git clone https://git.ffmpeg.org/ffmpeg.git ffmpeg
+
+	git checkout remotes/origin/release/2.0
+
+	./configure --enable-shared --disable-static
+
+	make && sudo make install
+
+alsa:
+
+	sudo apt-get install libasound2-dev
+
+Clone the Hellqualizer project in $PROJECT_DIR, then:
+
+	mkdir $PROJECT_DIR/build
+	cd $PROJECT_DIR/build
+	cmake ..
+	make
+
 Execution
 -------------------
 For encoded streams (If a video is provided, only the audio track will be processed)
@@ -32,19 +58,7 @@ Package
 Debian packages are available [here](http://the.ndero.ovh/build/Hellqualizer/)
 
 
-Compilation
--------------------
 
-To compile it, you need the following depandancies:
-
- 	sudo apt-get install libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libavdevice-dev libasound2-dev
-
-First, clone the project in $PROJECT_DIR, then:
-
- 	mkdir $PROJECT_DIR/build
-	cd $PROJECT_DIR/build
-	cmake ..
-	make
 
 
 
