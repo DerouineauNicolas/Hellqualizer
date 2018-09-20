@@ -22,7 +22,7 @@ int main (int argc, char **argv)
         exit(EXIT_SUCCESS);
     }
 
-    InitHellqualizer(&Ctx);
+    InitHellqualizer();
 
     src_filename = argv[1];
 
@@ -35,10 +35,10 @@ int main (int argc, char **argv)
 
 
 
-    decoder = new DemuxDecode(src_filename,&Ctx);
+    decoder = new DemuxDecode(src_filename);
 
-    Rendering *renderer = new Rendering(&Ctx);
-    Processing *processor = new Processing(&Ctx);
+    Rendering *renderer = new Rendering();
+    Processing *processor = new Processing();
 
 #ifdef HQ_GUI
     GUI *gui_control = new GUI(src_filename,&Ctx);
@@ -78,6 +78,6 @@ int main (int argc, char **argv)
     delete control;
 #endif
 
-    DestroyHellqualizer(&Ctx);
+    DestroyHellqualizer();
 
 }

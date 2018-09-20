@@ -11,7 +11,7 @@
 class Processing: public MyThreadClass
 {
 public:
-    Processing( HQ_Context *ctx);
+    Processing();
     ~Processing();
     void process(uint8_t **samples_in, int size, HQ_Context *options);
 private:

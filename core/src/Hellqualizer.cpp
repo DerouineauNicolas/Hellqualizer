@@ -1,5 +1,6 @@
 #include <Hellqualizer.h>
 #include <stdio.h>
+#include <stdarg.h>
 
 HQ_Context context;
 
@@ -34,9 +35,12 @@ void DestroyHellqualizer(){
     pthread_mutex_destroy(&context.m_mutex_process_to_render);
 }
 
-void HellLOG(int loglevel, char *str){
+void HellLOG(int loglevel, char *str, ...){
     if(loglevel>context.verbosity){
-        printf("%s \n",str);
+        va_list args;
+        va_start(args, str);
+        vfprintf(stderr, str, args);
+        va_end(args);
     }
 }
 

@@ -140,13 +140,13 @@ static int set_swparams(snd_pcm_t *handle, snd_pcm_sw_params_t *swparams)
 
 /*############################LIBABO############*/
 
-Rendering::Rendering( HQ_Context *ctx){
+Rendering::Rendering(){
 
     snd_pcm_hw_params_alloca(&hwparams);
     snd_pcm_sw_params_alloca(&swparams);
 
-    rate=ctx->Sampling_rate;
-    channels=ctx->channels;
+    rate=context.Sampling_rate;
+    channels=context.channels;
 
     if ((err = snd_pcm_open (&handle, "default", SND_PCM_STREAM_PLAYBACK, 0)) < 0) {
         fprintf (stderr, "cannot open audio device \n");
@@ -165,10 +165,10 @@ Rendering::Rendering( HQ_Context *ctx){
 
 
 
-    m_mutex=&ctx->m_mutex_process_to_render;
-    m_signal=&ctx->m_signal_process_to_render;
-    m_buffer_input=ctx->Buffer_process_render;
-    m_ctx=ctx;
+    m_mutex=&context.m_mutex_process_to_render;
+    m_signal=&context.m_signal_process_to_render;
+    m_buffer_input=context.Buffer_process_render;
+    m_ctx=&context;
 
 }
 

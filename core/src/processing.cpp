@@ -42,7 +42,7 @@ void FIR_FLOAT_1Ch::firMoveProcSamples( int length )
 
 int size_of_processing=2048;
 
-Processing::Processing(HQ_Context *ctx){
+Processing::Processing(){
     right_ch_in=(uint16_t*)malloc((size_of_processing/2)*sizeof(uint16_t));
     left_ch_in=(uint16_t*)malloc((size_of_processing/2)*sizeof(uint16_t));
     right_ch_out=(int16_t*)malloc((size_of_processing/2)*sizeof(int16_t));
@@ -60,14 +60,14 @@ Processing::Processing(HQ_Context *ctx){
     right_FIR=new FIR_FLOAT_1Ch();
     left_FIR=new FIR_FLOAT_1Ch();
 
-    m_mutex_input=&ctx->m_mutex_decode_to_process;
-    m_signal_input=&ctx->m_signal_decode_to_process;
-    m_buffer_input=ctx->Buffer_decode_process;
-    m_mutex_output=&ctx->m_mutex_process_to_render;
-    m_signal_output=&ctx->m_signal_process_to_render;
-    m_buffer_output=ctx->Buffer_process_render;
+    m_mutex_input=&context.m_mutex_decode_to_process;
+    m_signal_input=&context.m_signal_decode_to_process;
+    m_buffer_input=context.Buffer_decode_process;
+    m_mutex_output=&context.m_mutex_process_to_render;
+    m_signal_output=&context.m_signal_process_to_render;
+    m_buffer_output=context.Buffer_process_render;
 
-    m_ctx=ctx;
+    m_ctx=&context;
 
 }
 
