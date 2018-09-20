@@ -1,7 +1,7 @@
 #include <demuxing_decoding.h>
 #include <unistd.h>
 
-static const int buffer_size=AVCODEC_MAX_AUDIO_FRAME_SIZE+ FF_INPUT_BUFFER_PADDING_SIZE;
+static const int buffer_size=AVCODEC_MAX_AUDIO_FRAME_SIZE;
 
 
 DemuxDecode::DemuxDecode(const char* src_file_name, HQ_Context *ctx)
@@ -56,8 +56,6 @@ DemuxDecode::DemuxDecode(const char* src_file_name, HQ_Context *ctx)
     m_mutex=&ctx->m_mutex_decode_to_process;//mutex;
     m_signal=&ctx->m_signal_decode_to_process;
     m_buffer=ctx->Buffer_decode_process;
-
-
 }
 
 DemuxDecode::~DemuxDecode(){
@@ -210,6 +208,7 @@ void DemuxDecode::decode_audio_packet(int *got_frame, int *bytes_read,int cached
         pthread_mutex_lock(m_mutex);
         m_buffer->Write(samples, 2*audio_dec_ctx->channels*frame->nb_samples);
         //printf("writing %d samples \n",2*audio_dec_ctx->channels*frame->nb_samples);
+        HellLOG()
         pthread_mutex_unlock(m_mutex);
         pthread_cond_signal(m_signal);
     }

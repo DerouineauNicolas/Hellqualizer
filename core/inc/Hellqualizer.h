@@ -37,6 +37,7 @@ typedef struct HQ_Context{
     RingBuffer* Buffer_process_render;
 }HQ_Context;
 
-void InitHellqualizer(HQ_Context *Ctx);
-void DestroyHellqualizer(HQ_Context *Ctx);
+
+void InitHellqualizer();
+void DestroyHellqualizer();
 #endif

@@ -26,6 +26,14 @@ int main (int argc, char **argv)
 
     src_filename = argv[1];
 
+    if (argc > 2) {
+        if (!strcmp(argv[2], "-v")) {
+            fprintf(stderr, "Wrong Usage \n");
+            Ctx.verbosity = 1;
+        }
+    }
+
+
 
     decoder = new DemuxDecode(src_filename,&Ctx);
 
