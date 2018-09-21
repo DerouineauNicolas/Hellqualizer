@@ -2,6 +2,7 @@
 #define _PROCESSING_H
 #include <Hellqualizer.h>
 #include <fir_float.h>
+#include <iir_float.h>
 #include <stdint.h>
 #include <threadclass.h>
 
@@ -29,8 +30,11 @@ private:
     double *f_left_ch_in;
     FIR_FLOAT_1Ch *right_FIR;
     FIR_FLOAT_1Ch *left_FIR;
+    IIR_FLOAT_1Ch *right_IIR;
+    IIR_FLOAT_1Ch *left_IIR;
     void EQ_stereo_FIR_44100(int size,processing_options options);
     void EQ_stereo_FIR_48000(int size,processing_options options);
+    void EQ_stereo_IIR_44100(int size,processing_options options);
     pthread_mutex_t *m_mutex_input;
     pthread_cond_t *m_signal_input;
     RingBuffer *m_buffer_input;

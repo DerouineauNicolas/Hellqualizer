@@ -4,7 +4,7 @@ import numpy as np
 
 Fs=44100;
 
-b, a = signal.cheby2(4, 40, float(2000)/float(Fs), 'low', analog=False)
+b, a = signal.cheby2(2, 40, float(2000)/float(Fs), 'low', analog=False)
 w, h = signal.freqs(b, a)
 print (b , a)
 plt.plot(w, 20 * np.log10(abs(h)))
