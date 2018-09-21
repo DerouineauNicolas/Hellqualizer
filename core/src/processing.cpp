@@ -82,15 +82,16 @@ void *Processing::processing_thread(void *x_void_ptr)
     //signed short *samples_out;
 
     while(1){
-        if(m_ctx->state==PLAY){
+        if(context.state==PLAY){
             pthread_mutex_lock(m_mutex_input);
             //printf("INPUT_PROCESSING: %d \n",m_buffer_input->GetReadAvail());
+            HellLOG(1, "INPUT_PROCESSING: %d \n",m_buffer_input->GetReadAvail());
             while(m_buffer_input->GetReadAvail()<size_of_processing){
-                if(m_ctx->state==END_OF_DECODING)
+                if(context.state==END_OF_DECODING)
                     break;
                 pthread_cond_wait(m_signal_input, m_mutex_input);
             }
-            if(m_ctx->state==END_OF_DECODING)
+            if(context.state==END_OF_DECODING)
                 break;
             m_buffer_input->Read(samples,size_of_processing);
             pthread_mutex_unlock(m_mutex_input);
@@ -100,7 +101,8 @@ void *Processing::processing_thread(void *x_void_ptr)
             
             pthread_mutex_lock(m_mutex_output);
             //printf("PROCESSING_OUTPUT_READ_AVAILABLE: %d \n",m_buffer_output->GetWriteAvail());
-            if(m_ctx->state==END_OF_DECODING)
+            HellLOG(1, "PROCESSING_OUTPUT_READ_AVAILABLE: %d \n",m_buffer_output->GetWriteAvail());
+            if(context.state==END_OF_DECODING)
                 break;
             if(m_buffer_output->GetWriteAvail()>(size_of_processing)){
                 m_buffer_output->Write(samples, size_of_processing);

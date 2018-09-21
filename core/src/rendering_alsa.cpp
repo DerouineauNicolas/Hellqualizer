@@ -179,7 +179,7 @@ Rendering::~Rendering(){
 
 void *Rendering::play_thread(void *x_void_ptr)
 {
-    static int output_size=2048;
+    static int output_size=256;
 
     uint8_t *samples;
     samples=(uint8_t*)malloc(output_size*sizeof(uint8_t));
@@ -189,18 +189,18 @@ void *Rendering::play_thread(void *x_void_ptr)
     int err,cptr;
 
     while(1){
-        if(m_ctx->state==PLAY){
+        if(context.state==PLAY){
             pthread_mutex_lock(m_mutex);
-            //printf("RENDER: %d \n",m_buffer_decode_process->GetReadAvail());
+
             while(m_buffer_input->GetReadAvail()<output_size){
-                if(m_ctx->state==END_OF_DECODING)
+                if(context.state==END_OF_DECODING)
                     break;
                 pthread_cond_wait(m_signal, m_mutex);
             }
-            if(m_ctx->state==END_OF_DECODING)
+            if(context.state==END_OF_DECODING)
                 break;
             m_buffer_input->Read(samples,output_size);
-            
+            HellLOG(1, "RENDER: %d \n",m_buffer_input->GetReadAvail());
             //processor->process(&samples,output_size, m_ctx);
             
 

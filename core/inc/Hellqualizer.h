@@ -43,4 +43,5 @@ extern HQ_Context context;
 void InitHellqualizer();
 void DestroyHellqualizer();
 void HellLOG(int loglevel, char *str, ...);
+void SetHellVerbosity(int level);
 #endif

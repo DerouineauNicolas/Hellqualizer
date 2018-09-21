@@ -29,7 +29,7 @@ int main (int argc, char **argv)
     if (argc > 2) {
         if (!strcmp(argv[2], "-v")) {
             fprintf(stderr, "Wrong Usage \n");
-            Ctx.verbosity = 1;
+            SetHellVerbosity(1);
         }
     }
 

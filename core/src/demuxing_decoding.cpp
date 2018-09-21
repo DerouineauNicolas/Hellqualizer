@@ -49,9 +49,9 @@ DemuxDecode::DemuxDecode(const char* src_file_name)
     av_init_packet(&pkt);
     pkt.data = NULL;
     pkt.size = 0;
-    *m_ctx=context;
-    m_ctx->Sampling_rate=audio_dec_ctx->sample_rate;
-    m_ctx->channels=audio_dec_ctx->channels;
+    /*m_ctx=context;*/
+    context.Sampling_rate=audio_dec_ctx->sample_rate;
+    context.channels=audio_dec_ctx->channels;
 
     m_mutex=&context.m_mutex_decode_to_process;//mutex;
     m_signal=&context.m_signal_decode_to_process;
@@ -207,8 +207,7 @@ void DemuxDecode::decode_audio_packet(int *got_frame, int *bytes_read,int cached
 
         pthread_mutex_lock(m_mutex);
         m_buffer->Write(samples, 2*audio_dec_ctx->channels*frame->nb_samples);
-        //printf("writing %d samples \n",2*audio_dec_ctx->channels*frame->nb_samples);
-        HellLOG(1,"writing %d samples \n",2*audio_dec_ctx->channels*frame->nb_samples);
+        HellLOG(1,"decode_audio_packet: writing %d samples \n",2*audio_dec_ctx->channels*frame->nb_samples);
         pthread_mutex_unlock(m_mutex);
         pthread_cond_signal(m_signal);
     }
@@ -247,12 +246,12 @@ void *DemuxDecode::decode_thread(void *x_void_ptr)
             else
             {
                 pthread_mutex_lock(m_mutex);
-                m_ctx->state=END_OF_DECODING;
+                context.state=END_OF_DECODING;
                 pthread_mutex_unlock(m_mutex);
                 break;
             }
         }
-        else if(m_ctx->state==PAUSE){
+        else if(context.state==PAUSE){
             usleep(1000000);
             //if(log_level)
             //printf("Input Buffer overflow !!! \n");

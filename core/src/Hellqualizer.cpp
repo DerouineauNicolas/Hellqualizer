@@ -36,7 +36,7 @@ void DestroyHellqualizer(){
 }
 
 void HellLOG(int loglevel, char *str, ...){
-    if(loglevel>context.verbosity){
+    if(context.verbosity>=loglevel){
         va_list args;
         va_start(args, str);
         vfprintf(stderr, str, args);
