@@ -6,6 +6,7 @@ Fs=44100;
 
 b, a = signal.cheby2(4, 40, float(2000)/float(Fs), 'low', analog=False)
 w, h = signal.freqs(b, a)
+print (b , a)
 plt.plot(w, 20 * np.log10(abs(h)))
 plt.title('Chebyshev Type II frequency response (rs=40)')
 plt.xlabel('Frequency [radians / second]')

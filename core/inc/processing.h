@@ -29,8 +29,8 @@ private:
     double *f_left_ch_in;
     FIR_FLOAT_1Ch *right_FIR;
     FIR_FLOAT_1Ch *left_FIR;
-    void EQ_stereo_44100(int size,processing_options options);
-    void EQ_stereo_48000(int size,processing_options options);
+    void EQ_stereo_FIR_44100(int size,processing_options options);
+    void EQ_stereo_FIR_48000(int size,processing_options options);
     pthread_mutex_t *m_mutex_input;
     pthread_cond_t *m_signal_input;
     RingBuffer *m_buffer_input;

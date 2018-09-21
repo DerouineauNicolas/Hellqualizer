@@ -208,7 +208,7 @@ void mix_samples(double *ch, double *out, int num_samples)
 
 }
 
-#define GENERATE_FUNCTION(SAMPLING_RATE) void Processing::EQ_stereo_##SAMPLING_RATE(int size, processing_options options){ \
+#define GENERATE_FUNCTION(SAMPLING_RATE) void Processing::EQ_stereo_FIR_##SAMPLING_RATE(int size, processing_options options){ \
     double *inp; \
     intToFloat( (int16_t*)left_ch_in, f_left_ch_in, (size/4) ); \
     inp = left_FIR->firStoreNewSamples( f_left_ch_in, (size/4) );\
@@ -258,9 +258,9 @@ void Processing::process(uint8_t **samples_in, int size, HQ_Context *ctx){
 
 
         if(ctx->Sampling_rate==44100)
-            EQ_stereo_44100(size,options);
+            EQ_stereo_FIR_44100(size,options);
         else if(ctx->Sampling_rate==48000)
-            EQ_stereo_48000(size,options);
+            EQ_stereo_FIR_48000(size,options);
         else{
             printf("[Processing] Sampling rate is not supported \n");
             return;
