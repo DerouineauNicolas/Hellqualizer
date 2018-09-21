@@ -43,7 +43,7 @@ int main (int argc, char **argv)
 #ifdef HQ_GUI
     GUI *gui_control = new GUI(src_filename,&Ctx);
 #else
-    Controler *control = new Controler(src_filename, &Ctx);
+    Controler *control = new Controler(src_filename);
 #endif
 
     decoder->StartInternalThread();

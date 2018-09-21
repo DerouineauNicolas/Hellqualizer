@@ -7,10 +7,9 @@
 using namespace std;
 
 
-Controler::Controler(char* src_file_name, HQ_Context *ctx)
+Controler::Controler(char* src_file_name)
 {
    m_src_file_name=src_file_name;
-   //m_ctx=ctx;
 }
 
 void *Controler::control_thread(void *x_void_ptr)
