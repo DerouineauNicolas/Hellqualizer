@@ -57,7 +57,7 @@ void IIR_FLOAT_1Ch::iirMoveProcSamples(int length) {
     memmove(&insamp[0], &insamp[length], (MAX_FLT_LEN - 1) * sizeof(double));
 }
 
-int size_of_processing = 2048;
+int size_of_processing = 256;
 
 Processing::Processing() {
     right_ch_in = (uint16_t*) malloc(
@@ -126,6 +126,7 @@ void *Processing::processing_thread(void *x_void_ptr) {
                 pthread_cond_signal(m_signal_output);
             } else {
                 printf("Process: Not enough spacein output buffer \n");
+                usleep(1000);
             }
             pthread_mutex_unlock(m_mutex_output);
             //
@@ -187,19 +188,23 @@ void FIR_FLOAT_1Ch::firFloat(double *coeffs, double *input, double *output,
 // the IIR filter function
 void IIR_FLOAT_1Ch::iirFloat(double *coeffs, double *input, double *output,
         int length, int filterLength, double Gain) {
-    float b0 = 0.0099594;
-    float b1 = -0.01951718;
-    float b2 = 0.0099594;
-    float a1 = -1.97159844;
-    float a2 = 0.97200006;
+    float b0 = 0.01440144;
+    float b1 = 0.02880288;
+    float b2 = 0.01440144;
+    float a1 = -1.63299316;
+    float a2 = 0.69059892;
     float w1 = 0.0;
     float w2 = 0.0;
     int n;
+
+
     // apply the filter to each input sample
-    for (n = 0; n < length; n++) {
-        output[n] = b0 * input[n] + w1;
-        w1 = b1 * input[n] - a1 * output[n] + w2;
-        w2 = b2 * input[n] - a2 * output[n];
+	for (n = 0; n < length; n++) {
+		//printf(" i=%f  o=%f \n", input[n], output[n]);
+		//output[n] =  input[n];
+		output[n] = b0 * input[n] + w1;
+		w1 = (b1 * input[n]) -(a1 * output[n])+ w2;
+		w2 = (b2 * input[n] )- (a2 * output[n]);
     }
 }
 
@@ -264,11 +269,16 @@ GENERATE_FUNCTION(48000)
 void Processing::EQ_stereo_IIR_44100(int size, processing_options options) {
     double *inp;
     intToFloat((int16_t*) left_ch_in, f_left_ch_in, (size / 4));
-    inp = left_IIR->iirStoreNewSamples(f_left_ch_in, (size / 4));
-    left_IIR->iirFloat(NULL, inp, f_left_ch_out_tmp, (size / 4),
+    //inp = left_IIR->iirStoreNewSamples(f_left_ch_in, (size / 4));
+    left_IIR->iirFloat(NULL, f_left_ch_in, f_left_ch_out, (size / 4),
             FILTER_LEN_0_2000, options.GAIN[0]);
-    left_IIR->iirMoveProcSamples((size / 4));
     floatToInt(f_left_ch_out, left_ch_out, (size / 4));
+
+    intToFloat( (int16_t*)right_ch_in, f_right_ch_in, (size/4) );
+    //inp = right_FIR->firStoreNewSamples( f_right_ch_in, (size/4) );
+    right_IIR->iirFloat(NULL, f_right_ch_in, f_right_ch_out, (size / 4),
+            FILTER_LEN_0_2000, options.GAIN[0]);
+    floatToInt(f_right_ch_out, right_ch_out, (size / 4));
 }
 
 void Processing::process(uint8_t **samples_in, int size, HQ_Context *ctx) {
@@ -290,11 +300,12 @@ void Processing::process(uint8_t **samples_in, int size, HQ_Context *ctx) {
             }
         }
 
-        if (ctx->Sampling_rate == 44100) {
-            EQ_stereo_FIR_44100(size, options);
-            //EQ_stereo_IIR_44100(size,options);
+        if (ctx->Sampling_rate == 44100 ) {
+            //EQ_stereo_FIR_44100(size, options);
+
         } else if (ctx->Sampling_rate == 48000) {
-            EQ_stereo_FIR_48000(size, options);
+            //EQ_stereo_FIR_48000(size, options);
+            EQ_stereo_IIR_44100(size,options);
         } else {
             printf("[Processing] Sampling rate is not supported \n");
             return;

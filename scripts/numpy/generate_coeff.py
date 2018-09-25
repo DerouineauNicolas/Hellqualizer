@@ -2,12 +2,12 @@ from scipy import signal
 import matplotlib.pyplot as plt
 import numpy as np
 
-Fs=48000
+HalfFs=24000
 
-b, a = signal.iirfilter(1, [0.2, 0.4], rs=60, btype='band',
-                        analog=False, ftype='cheby2')
+b, a = signal.butter(2, 2000/HalfFs, 'low', analog=False)
 w, h = signal.freqz(b, a, 1000)
-print (b,a)
+print (b)
+print (a)
 fig = plt.figure()
 ax1 = fig.add_subplot(111)
 plt.plot(w, 20 * np.log10(abs(h)), 'b')
