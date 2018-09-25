@@ -15,7 +15,7 @@
 class Rendering:public MyThreadClass
 {
 public:
-    Rendering(HQ_Context *ctx);
+    Rendering();
     ~Rendering();
     //void decode_packet(int *got_frame, int *bytes_read,int cached);
     void *play_thread(void *x_void_ptr);

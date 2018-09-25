@@ -1,10 +1,10 @@
 #include <demuxing_decoding.h>
 #include <unistd.h>
 
-static const int buffer_size=AVCODEC_MAX_AUDIO_FRAME_SIZE+ FF_INPUT_BUFFER_PADDING_SIZE;
+static const int buffer_size=AVCODEC_MAX_AUDIO_FRAME_SIZE;
 
 
-DemuxDecode::DemuxDecode(const char* src_file_name, HQ_Context *ctx)
+DemuxDecode::DemuxDecode(const char* src_file_name)
 {
     m_src_filename=src_file_name;
     /* register all formats and codecs */
@@ -49,15 +49,13 @@ DemuxDecode::DemuxDecode(const char* src_file_name, HQ_Context *ctx)
     av_init_packet(&pkt);
     pkt.data = NULL;
     pkt.size = 0;
-    m_ctx=ctx;
-    m_ctx->Sampling_rate=audio_dec_ctx->sample_rate;
-    m_ctx->channels=audio_dec_ctx->channels;
+    /*m_ctx=context;*/
+    context.Sampling_rate=audio_dec_ctx->sample_rate;
+    context.channels=audio_dec_ctx->channels;
 
-    m_mutex=&ctx->m_mutex_decode_to_process;//mutex;
-    m_signal=&ctx->m_signal_decode_to_process;
-    m_buffer=ctx->Buffer_decode_process;
-
-
+    m_mutex=&context.m_mutex_decode_to_process;//mutex;
+    m_signal=&context.m_signal_decode_to_process;
+    m_buffer=context.Buffer_decode_process;
 }
 
 DemuxDecode::~DemuxDecode(){
@@ -98,7 +96,7 @@ int DemuxDecode::open_codec_context(int *stream_idx, AVCodecContext **dec_ctx, A
         stream_index = ret;
         st = fmt_ctx->streams[stream_index];
         /* find decoder for the stream */
-#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(55,28,1)
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(57,0,0)
         dec = avcodec_find_decoder(st->codec->codec_id);
 #else
         dec = avcodec_find_decoder(st->codecpar->codec_id);
@@ -117,8 +115,8 @@ int DemuxDecode::open_codec_context(int *stream_idx, AVCodecContext **dec_ctx, A
             return AVERROR(ENOMEM);
         }
 
-#if LIBAVCODEC_VERSION_INT >= AV_VERSION_INT(55,28,1)
-                /* Copy codec parameters from input stream to output codec context */
+#if LIBAVCODEC_VERSION_INT >= AV_VERSION_INT(57,0,1)
+                /* Copy codec parameters frominput stream to output codec context */
                 if ((ret = avcodec_parameters_to_context(*dec_ctx, st->codecpar)) < 0) {
                     fprintf(stderr, "Failed to copy codec parameters to decoder context\n");//,
                             //av_get_media_type_string(type));
@@ -209,7 +207,7 @@ void DemuxDecode::decode_audio_packet(int *got_frame, int *bytes_read,int cached
 
         pthread_mutex_lock(m_mutex);
         m_buffer->Write(samples, 2*audio_dec_ctx->channels*frame->nb_samples);
-        //printf("writing %d samples \n",2*audio_dec_ctx->channels*frame->nb_samples);
+        HellLOG(1,"decode_audio_packet: writing %d samples \n",2*audio_dec_ctx->channels*frame->nb_samples);
         pthread_mutex_unlock(m_mutex);
         pthread_cond_signal(m_signal);
     }
@@ -248,12 +246,12 @@ void *DemuxDecode::decode_thread(void *x_void_ptr)
             else
             {
                 pthread_mutex_lock(m_mutex);
-                m_ctx->state=END_OF_DECODING;
+                context.state=END_OF_DECODING;
                 pthread_mutex_unlock(m_mutex);
                 break;
             }
         }
-        else if(m_ctx->state==PAUSE){
+        else if(context.state==PAUSE){
             usleep(1000000);
             //if(log_level)
             //printf("Input Buffer overflow !!! \n");

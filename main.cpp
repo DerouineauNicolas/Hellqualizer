@@ -22,20 +22,28 @@ int main (int argc, char **argv)
         exit(EXIT_SUCCESS);
     }
 
-    InitHellqualizer(&Ctx);
+    InitHellqualizer();
 
     src_filename = argv[1];
 
+    if (argc > 2) {
+        if (!strcmp(argv[2], "-v")) {
+            fprintf(stderr, "Wrong Usage \n");
+            SetHellVerbosity(1);
+        }
+    }
 
-    decoder = new DemuxDecode(src_filename,&Ctx);
 
-    Rendering *renderer = new Rendering(&Ctx);
-    Processing *processor = new Processing(&Ctx);
+
+    decoder = new DemuxDecode(src_filename);
+
+    Rendering *renderer = new Rendering();
+    Processing *processor = new Processing();
 
 #ifdef HQ_GUI
     GUI *gui_control = new GUI(src_filename,&Ctx);
 #else
-    Controler *control = new Controler(src_filename, &Ctx);
+    Controler *control = new Controler(src_filename);
 #endif
 
     decoder->StartInternalThread();
@@ -70,6 +78,6 @@ int main (int argc, char **argv)
     delete control;
 #endif
 
-    DestroyHellqualizer(&Ctx);
+    DestroyHellqualizer();
 
 }

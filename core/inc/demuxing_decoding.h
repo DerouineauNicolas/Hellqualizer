@@ -39,7 +39,7 @@ extern "C" {
 class DemuxDecode: public MyThreadClass
 {
 public:
-    DemuxDecode(const char* src_file_name, HQ_Context *ctx);
+    DemuxDecode(const char* src_file_name);
     DemuxDecode();
     ~DemuxDecode();
     void decode_audio_packet(int *got_frame, int *bytes_read,int cached);

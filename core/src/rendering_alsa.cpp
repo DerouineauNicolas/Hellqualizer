@@ -140,13 +140,13 @@ static int set_swparams(snd_pcm_t *handle, snd_pcm_sw_params_t *swparams)
 
 /*############################LIBABO############*/
 
-Rendering::Rendering( HQ_Context *ctx){
+Rendering::Rendering(){
 
     snd_pcm_hw_params_alloca(&hwparams);
     snd_pcm_sw_params_alloca(&swparams);
 
-    rate=ctx->Sampling_rate;
-    channels=ctx->channels;
+    rate=context.Sampling_rate;
+    channels=context.channels;
 
     if ((err = snd_pcm_open (&handle, "default", SND_PCM_STREAM_PLAYBACK, 0)) < 0) {
         fprintf (stderr, "cannot open audio device \n");
@@ -165,10 +165,10 @@ Rendering::Rendering( HQ_Context *ctx){
 
 
 
-    m_mutex=&ctx->m_mutex_process_to_render;
-    m_signal=&ctx->m_signal_process_to_render;
-    m_buffer_input=ctx->Buffer_process_render;
-    m_ctx=ctx;
+    m_mutex=&context.m_mutex_process_to_render;
+    m_signal=&context.m_signal_process_to_render;
+    m_buffer_input=context.Buffer_process_render;
+    m_ctx=&context;
 
 }
 
@@ -179,7 +179,7 @@ Rendering::~Rendering(){
 
 void *Rendering::play_thread(void *x_void_ptr)
 {
-    static int output_size=2048;
+    static int output_size=256;
 
     uint8_t *samples;
     samples=(uint8_t*)malloc(output_size*sizeof(uint8_t));
@@ -189,18 +189,18 @@ void *Rendering::play_thread(void *x_void_ptr)
     int err,cptr;
 
     while(1){
-        if(m_ctx->state==PLAY){
+        if(context.state==PLAY){
             pthread_mutex_lock(m_mutex);
-            //printf("RENDER: %d \n",m_buffer_decode_process->GetReadAvail());
+
             while(m_buffer_input->GetReadAvail()<output_size){
-                if(m_ctx->state==END_OF_DECODING)
+                if(context.state==END_OF_DECODING)
                     break;
                 pthread_cond_wait(m_signal, m_mutex);
             }
-            if(m_ctx->state==END_OF_DECODING)
+            if(context.state==END_OF_DECODING)
                 break;
             m_buffer_input->Read(samples,output_size);
-            
+            HellLOG(1, "RENDER: %d \n",m_buffer_input->GetReadAvail());
             //processor->process(&samples,output_size, m_ctx);
             
 
