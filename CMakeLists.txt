@@ -22,12 +22,17 @@ endif()
 
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/core/inc)
 
+SET(INSTALL_FFMPEG_DIR "${PROJECT_SOURCE_DIR}/ffmpeg_build/")
 
-#FFMPEG is assumed to be in /usr/local/*
-INCLUDE_DIRECTORIES(/usr/local/include/)
-link_directories(/usr/local/lib/)
-INCLUDE_DIRECTORIES(/usr/include/)
+INCLUDE_DIRECTORIES("${INSTALL_FFMPEG_DIR}/include")
+link_directories("${INSTALL_FFMPEG_DIR}/lib")
 link_directories(/usr/lib/)
+file(GLOB MY_PUBLIC_HEADERS
+  "${INSTALL_FFMPEG_DIR}/lib/*.so.*"
+)
+file(COPY ${MY_PUBLIC_HEADERS} DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+INCLUDE_DIRECTORIES(/usr/include/)
+
 
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -D__STDC_CONSTANT_MACROS ")
 

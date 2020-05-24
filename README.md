@@ -12,13 +12,15 @@ To compile it, you need the following depandancies:
 
 ffmpeg:
 
+    mkdir $PWD/ffmpeg_build && export FFMPEG_DIR=$PWD/ffmpeg_build
+
 	git clone https://git.ffmpeg.org/ffmpeg.git ffmpeg
 
-	git checkout remotes/origin/release/2.8
+	cd ffmpeg && git checkout remotes/origin/release/2.8 
 
-	./configure --enable-shared --disable-static
+	./configure --enable-shared --disable-static --prefix=$FFMPEG_DIR
 
-	make && sudo make install
+	make
 
 alsa:
 
